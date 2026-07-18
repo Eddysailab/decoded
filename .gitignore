@@ -1,0 +1,19 @@
+# Operating system junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+*~
+
+# Logs and local scratch files
+*.log
+_play_test.html
+decoded-play.html
+
+# Dependencies (not used today, here so a future build step stays clean)
+node_modules/
+dist/
