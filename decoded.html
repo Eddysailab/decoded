@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decoded, an Eddy's AI Lab game</title>
+<style>
+  :root{
+    --bg:#0B0B0C; --panel:#141417; --panel-2:#1C1C21; --line:#2A2A31;
+    --green:#C6FF3A; --green-dim:#8FBE1F; --white:#F5F7F2; --muted:#9A9AA3; --red:#FF5C5C; --amber:#FFB13A; --cyan:#3AE8FF;
+    --radius:16px; --font:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--font);background:var(--bg);color:var(--white);-webkit-font-smoothing:antialiased;min-height:100%;position:relative;overflow-x:hidden}
+
+  /* moving code background */
+  #codebg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+  #codebg::after{content:'';position:absolute;inset:0;background:
+    radial-gradient(900px 500px at 80% -10%, rgba(198,255,58,.10), transparent 60%),
+    radial-gradient(700px 500px at 0% 110%, rgba(198,255,58,.06), transparent 55%)}
+  #codebg .col{position:absolute;top:0;font-family:var(--mono);font-size:12.5px;line-height:1.85;color:var(--green);white-space:pre;opacity:.06;animation:scrollup linear infinite}
+  @keyframes scrollup{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+
+  .wrap{position:relative;z-index:1;display:flex;justify-content:center;padding:22px 16px 64px}
+  .app{width:100%;max-width:760px}
+
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px}
+  .brand{display:flex;align-items:center;gap:11px}
+  .brand .mk{width:40px;height:42px;flex:0 0 auto}
+  .brand h1{font-size:19px;letter-spacing:.16em;font-weight:800}
+  .brand span{display:block;font-size:9.5px;letter-spacing:.22em;color:var(--muted);font-weight:600;margin-top:2px}
+  .hud{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+  .chip{font-size:12.5px;color:var(--muted);background:rgba(20,20,23,.85);border:1px solid var(--line);padding:7px 12px;border-radius:999px;font-weight:700;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+  .chip b{color:var(--green)}
+  .chip .amber{color:var(--amber)}
+
+  .card{background:rgba(20,20,23,.9);backdrop-filter:blur(4px);border:1px solid var(--line);border-radius:var(--radius);padding:26px;animation:fadeUp .45s ease both}
+  .card+.card{margin-top:16px}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  @keyframes popIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:none}}
+
+  /* lucide icon sizing */
+  .emo{font-style:normal;line-height:1;display:inline-block;vertical-align:-.05em}
+  .ico-lg .emo{font-size:22px}
+  .ico-xl .emo{font-size:26px}
+
+  .cta{margin-top:16px;background:linear-gradient(160deg,#12160b,#0e0e10);border:1px solid var(--green-dim);border-radius:16px;padding:20px;display:flex;gap:16px;align-items:center;position:relative;overflow:hidden}
+  .cta::after{content:'';position:absolute;inset:0;background:radial-gradient(360px 120px at 100% 0,rgba(198,255,58,.12),transparent 60%);pointer-events:none}
+  .cta .cta-mascot{width:56px;height:58px;flex:0 0 auto}
+  .cta h3{font-size:16px;margin-bottom:4px;line-height:1.35}
+  .cta p{color:var(--muted);font-size:13px;margin-bottom:12px}
+  .cta a.btn{text-decoration:none}
+  @media(max-width:560px){.cta{flex-direction:column;text-align:center}}
+  hr{border:none;border-top:1px solid var(--line);margin:22px 0}
+  .sharecard{margin-top:6px;animation:popIn .4s ease both}
+
+  /* mascot */
+  .mascot{display:block}
+  .mascot .eyes{transform-box:fill-box;transform-origin:center}
+  .mascot .blinker{transform-box:fill-box;transform-origin:center;animation:blink 4.2s ease-in-out infinite}
+  .mascot.look .eyes{animation:look 5.4s ease-in-out infinite}
+  @keyframes look{
+    0%,9%{transform:translate(0,0)} 15%,23%{transform:translate(0,-5px)}
+    29%,37%{transform:translate(0,5px)} 43%,51%{transform:translate(-6px,0)}
+    57%,65%{transform:translate(6px,0)} 71%,100%{transform:translate(0,0)} }
+  @keyframes blink{0%,92%,100%{transform:scaleY(1)} 96%{transform:scaleY(.12)}}
+  .bob{animation:bob 2.3s ease-in-out infinite}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+  .ada{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+  .ada .gm{flex:0 0 auto;width:46px;height:48px}
+  .ada .bubble{background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:12px 15px;font-size:14.5px;line-height:1.5;color:#e9ebe4;animation:popIn .4s ease both}
+  .ada .bubble b{color:var(--green)}
+  .who{font-size:10px;letter-spacing:.18em;color:var(--muted);font-weight:700;margin-bottom:5px}
+
+  h2{font-size:22px;font-weight:800;letter-spacing:-.01em;margin-bottom:6px}
+  .lead{color:var(--muted);font-size:14px;line-height:1.55;margin-bottom:16px}
+
+  .howto{display:flex;gap:10px;align-items:center;background:rgba(198,255,58,.09);border:1px solid var(--green-dim);border-radius:12px;padding:12px 15px;font-size:14px;font-weight:600;color:#eaf3d6;margin:2px 0 18px}
+  .howto .h{color:var(--green);display:inline-flex;flex:0 0 auto}
+
+  .btn{appearance:none;border:none;cursor:pointer;font-family:inherit;font-weight:700;border-radius:12px;padding:13px 20px;font-size:14.5px;transition:.15s;display:inline-flex;align-items:center;gap:8px}
+  .btn.primary{background:var(--green);color:#0b0b0c}
+  .btn.primary:hover{box-shadow:0 6px 26px rgba(198,255,58,.28);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--white);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--green);color:var(--green)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+  .btn.big{padding:15px 26px;font-size:16px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;align-items:center}
+  .spacer{flex:1}
+  .linkbtn{background:none;border:none;color:var(--muted);font-family:inherit;font-size:12.5px;cursor:pointer;font-weight:600;display:inline-flex;align-items:center;gap:5px}
+  .linkbtn:hover{color:var(--green)}
+
+  .splash{text-align:center;padding:34px 22px}
+  .splash .mascot{width:150px;height:158px;margin:0 auto}
+  .splash h2{font-size:34px;letter-spacing:.14em;margin:22px 0 6px}
+  .splash p{color:var(--muted);font-size:15px;max-width:430px;margin:0 auto 22px;line-height:1.5}
+
+  .hero{display:flex;align-items:center;gap:18px;background:var(--panel-2);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px}
+  .hero .mascot{width:66px;height:70px;flex:0 0 auto}
+  .hero h2{margin:0 0 3px}
+  .hero p{color:var(--muted);font-size:13px}
+
+  .avatars{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 0 4px}
+  .av{background:var(--panel-2);border:2px solid var(--line);border-radius:16px;padding:20px 14px;cursor:pointer;transition:.15s;text-align:center}
+  .av:hover{border-color:var(--green);transform:translateY(-3px)}
+  .av.sel{border-color:var(--green);background:rgba(198,255,58,.08)}
+  .av .mascot{width:96px;height:100px;margin:0 auto 8px}
+  .av h3{font-size:18px;font-weight:800}
+  .av p{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.4}
+
+  .xpwrap{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:18px}
+  .xprow{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:8px;align-items:center}
+  .xprow b{color:var(--green)}
+  .xpbar{height:9px;background:#0e0e10;border-radius:999px;overflow:hidden}
+  .xpbar .f{height:100%;background:linear-gradient(90deg,var(--green-dim),var(--green));border-radius:999px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+
+  .chapter{font-size:10.5px;letter-spacing:.2em;color:var(--muted);font-weight:800;margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+  .chapter::after{content:'';flex:1;height:1px;background:var(--line)}
+  .levels{display:grid;gap:11px}
+  .lvl{display:flex;align-items:center;gap:15px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 17px;cursor:pointer;transition:.15s;animation:fadeUp .4s ease both}
+  .lvl:hover:not(.locked){border-color:var(--green);transform:translateX(3px)}
+  .lvl.locked{opacity:.5;cursor:not-allowed}
+  .lvl .num{flex:0 0 auto;width:38px;height:38px;border-radius:10px;background:var(--panel-2);border:1px solid var(--line);display:grid;place-items:center;font-weight:800;font-size:15px;color:var(--muted)}
+  .lvl.done .num{background:var(--green);color:#0b0b0c;border-color:var(--green)}
+  .lvl.current .num{border-color:var(--green);color:var(--green)}
+  .lvl .info{flex:1;min-width:0}
+  .lvl .info h3{font-size:15px;font-weight:700;margin-bottom:2px}
+  .lvl .info p{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lvl .status{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--muted);text-align:right;display:flex;align-items:center;gap:5px}
+  .lvl.done .status{color:var(--green)}
+
+  .opts{display:grid;gap:10px;margin:6px 0 4px}
+  .opt{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.12s;font-size:14.5px;display:flex;align-items:center;gap:12px;animation:fadeUp .3s ease both}
+  .opt:hover{border-color:var(--green)}
+  .opt.correct{border-color:var(--green);background:rgba(198,255,58,.12)}
+  .opt.wrong{border-color:var(--red);background:rgba(255,92,92,.1)}
+  .opt .oi{color:var(--green);display:inline-flex;flex:0 0 auto}
+  .tappable{position:relative}
+  .tappable::after{content:'TAP';position:absolute;top:10px;right:12px;font-size:9px;letter-spacing:.15em;font-weight:800;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+  .tappable:hover::after{color:var(--green);border-color:var(--green)}
+
+  .prompt-q{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:16px;font-weight:700;font-size:16px;text-align:center;margin-bottom:6px;animation:popIn .35s ease both}
+
+  .binrow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .bin{border:1px solid var(--line);border-radius:12px;padding:16px 14px;min-height:92px;background:var(--panel-2);cursor:pointer;transition:.12s;display:grid;place-items:center;text-align:center}
+  .bin:hover{border-color:var(--green);background:rgba(198,255,58,.06)}
+  .bin .bi{color:var(--green);margin-bottom:6px;display:inline-flex}
+  .bin h4{font-size:13.5px;font-weight:800;margin-bottom:4px}
+  .bin p{font-size:11.5px;color:var(--muted)}
+
+  .bar{margin:9px 0}
+  .bar .lab{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .bar .track{height:9px;background:var(--panel-2);border-radius:999px;overflow:hidden}
+  .bar .fill{height:100%;background:var(--green);border-radius:999px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  .bar.dim .fill{background:var(--green-dim);opacity:.5}
+
+  .chips{display:flex;flex-wrap:wrap;gap:9px;margin:4px 0 14px}
+  .pchip{background:var(--panel-2);border:1px solid var(--line);border-radius:999px;padding:10px 16px;font-size:13px;cursor:pointer;transition:.12s;font-weight:700;display:inline-flex;align-items:center;gap:7px}
+  .pchip .oi{color:var(--green);display:inline-flex}
+  .pchip:hover{border-color:var(--green)}
+  .pchip.on{background:var(--green);color:#0b0b0c;border-color:var(--green)}
+  .pchip.on .oi{color:#0b0b0c}
+  .preview{background:#0e0e10;border:1px solid var(--line);border-radius:12px;padding:16px;font-size:14px;line-height:1.55;min-height:70px}
+  .preview .ph{color:var(--muted)}
+  .meter{height:10px;background:var(--panel-2);border-radius:999px;overflow:hidden;margin:14px 0 6px}
+  .meter .fill{height:100%;width:8%;background:linear-gradient(90deg,var(--green-dim),var(--green));transition:width .5s}
+  .meterlab{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+
+  .tools{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 16px}
+  .tool{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;cursor:pointer;display:flex;gap:11px;align-items:center;transition:.12s}
+  .tool:hover{border-color:var(--green)}
+  .tool.on{border-color:var(--green);background:rgba(198,255,58,.08)}
+  .tool .ic{color:var(--green);display:inline-flex}
+  .tool small{display:block;color:var(--muted);font-size:11.5px}
+  .log{background:#0e0e10;border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-top:6px}
+  .log .line{padding:9px 0;font-size:13.5px;border-bottom:1px solid var(--line);opacity:0;transform:translateY(6px);animation:pop .35s forwards;display:flex;align-items:center;gap:9px}
+  .log .line:last-child{border-bottom:none}
+  .log .line .li{flex:0 0 auto;display:inline-flex}
+  .log .line.ok .li{color:var(--green)}
+  .log .line.fail .li{color:var(--red)}
+  @keyframes pop{to{opacity:1;transform:none}}
+
+  /* order game */
+  .orderpool{display:grid;gap:10px;margin-top:4px}
+  .ostep{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.12s;display:flex;align-items:center;gap:12px;font-size:14.5px}
+  .ostep:hover:not(.picked){border-color:var(--green)}
+  .ostep .si{color:var(--green);display:inline-flex}
+  .ostep.picked{opacity:.5;pointer-events:none}
+  .ostep .badge{margin-left:auto;background:var(--green);color:#0b0b0c;font-weight:800;font-size:12px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center}
+
+  .feedback{border-radius:12px;padding:13px 16px;font-size:14px;line-height:1.5;margin-top:14px;display:none}
+  .feedback.show{display:block;animation:popIn .3s ease both}
+  .feedback.good{background:rgba(198,255,58,.1);border:1px solid var(--green-dim)}
+  .feedback.bad{background:rgba(255,92,92,.08);border:1px solid var(--red)}
+  .feedback .pts{color:var(--green);font-weight:800;display:inline-flex;align-items:center;gap:4px}
+
+  .reveal{border:1px solid var(--green-dim);background:rgba(198,255,58,.06);border-radius:14px;padding:20px;margin-top:8px}
+  .reveal .kicker{font-size:11px;letter-spacing:.2em;color:var(--green);font-weight:800;margin-bottom:8px}
+  .reveal h3{font-size:19px;margin-bottom:8px}
+  .reveal p{font-size:14.5px;line-height:1.6;color:#e5e7df}
+  .ptsline{background:var(--panel-2);border:1px solid var(--green-dim);border-radius:12px;padding:12px 15px;margin-top:14px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:8px}
+  .ptsline b{color:var(--green)}
+  .ptsline .pi{color:var(--green);display:inline-flex}
+  .nudge{font-size:13.5px;color:var(--green);font-weight:700;margin-top:12px;display:flex;align-items:center;gap:7px}
+
+  .gcard{background:linear-gradient(160deg,#181c11,#0f120b);border:1px solid var(--green-dim);border-radius:16px;padding:22px;margin-top:14px;position:relative;overflow:hidden}
+  .gcard::after{content:'';position:absolute;inset:0;background:radial-gradient(400px 120px at 90% 0,rgba(198,255,58,.14),transparent 60%)}
+  .gcard .tagline{font-size:10px;letter-spacing:.24em;color:var(--green);font-weight:800;display:flex;align-items:center;gap:6px}
+  .gcard h3{font-size:21px;margin:6px 0 8px}
+  .gcard p{font-size:14px;line-height:1.55;color:#dfe2d8}
+
+  .deck{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+  @media(max-width:560px){.deck{grid-template-columns:1fr}.binrow{grid-template-columns:1fr}.tools{grid-template-columns:1fr}.avatars{grid-template-columns:1fr}}
+  .deck .g{background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .deck .g b{color:var(--green);font-size:13.5px}
+  .deck .g p{font-size:12px;color:var(--muted);margin-top:4px;line-height:1.45}
+
+  .cert{text-align:center;padding:30px 22px}
+  .cert .mascot{width:96px;height:100px;margin:0 auto 12px}
+  .cert h2{font-size:26px}
+  .cert .big-score{font-size:44px;font-weight:800;color:var(--green);margin:6px 0;display:flex;align-items:center;justify-content:center;gap:10px}
+  .cert .rank{font-size:13px;letter-spacing:.14em;color:var(--muted);font-weight:700}
+  .pillrow{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+  .pill{font-size:11px;background:var(--panel);border:1px solid var(--green-dim);color:var(--green);padding:6px 11px;border-radius:999px;font-weight:700}
+
+  /* leaderboard */
+  .lb{display:grid;gap:9px;margin-top:8px}
+  .lbrow{display:flex;align-items:center;gap:14px;background:var(--panel-2);border:1px solid var(--line);border-radius:12px;padding:13px 16px;animation:fadeUp .35s ease both}
+  .lbrow.you{border-color:var(--green);background:rgba(198,255,58,.08)}
+  .lbrow .rk{width:26px;font-weight:800;color:var(--muted);text-align:center;flex:0 0 auto}
+  .lbrow.top1 .rk,.lbrow.top2 .rk,.lbrow.top3 .rk{color:var(--green)}
+  .lbrow .nm{flex:1;font-weight:700;letter-spacing:.04em}
+  .lbrow .sc{font-weight:800;color:var(--green);display:inline-flex;align-items:center;gap:5px}
+  .lbrow .rankname{font-size:11px;color:var(--muted);font-weight:600}
+  .addbox{display:flex;gap:10px;margin-top:14px}
+  .addbox input{flex:1;background:#0e0e10;border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--white);font-family:inherit;font-size:14px;text-transform:uppercase;letter-spacing:.1em}
+  .addbox input:focus{outline:none;border-color:var(--green)}
+
+  .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:26px;letter-spacing:.04em}
+
+  #burst{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:50;pointer-events:none;display:flex;flex-direction:column;gap:6px;align-items:center}
+  .pop-pts{background:var(--green);color:#0b0b0c;font-weight:800;font-size:15px;padding:7px 14px;border-radius:999px;box-shadow:0 6px 24px rgba(198,255,58,.4);animation:rise 1s ease forwards;display:inline-flex;align-items:center;gap:5px}
+  @keyframes rise{0%{opacity:0;transform:translateY(8px) scale(.9)}20%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}
+</style>
+</head>
+<body>
+<div id="codebg"></div>
+<div id="burst"></div>
+<div class="wrap">
+<div class="app">
+  <div class="top">
+    <div class="brand">
+      <div class="mk" id="hdrMark"></div>
+      <div><h1>DECODED</h1><span>BY EDDY'S AI LAB</span></div>
+    </div>
+    <div class="hud" id="hud"></div>
+  </div>
+  <div id="screen"></div>
+  <div class="foot">Prototype build, single file, nothing you do here leaves this page</div>
+</div>
+</div>
+
+<script>
+/* ---------------- moving code background ---------------- */
+(function buildCodeBg(){
+  const snippets=[
+    "const model = train(data);","if (prompt) generate(reply);","for (let i=0;i<tokens;i++)",
+    "predict(next_word);","embedding = encode(text);","loss = compare(pred, truth);",
+    "weights += learningRate * grad;","agent.use(tool);","while (!done) step();",
+    "def learn(x): return f(x*w+b)","output = softmax(logits);","verify(fact) or flag();",
+    "prompt = role + task + format;","context.append(memory);","score += reward;",
+    "if (confidence < 0.5) checkSource();","return bestGuess(options);","render(ui, state);",
+    "data = clean(raw);","policy.review(system);","risk = assess(bias);","opportunity.unlock();"
+  ];
+  function block(n){let s='';for(let i=0;i<n;i++){s+=snippets[Math.floor(Math.random()*snippets.length)]+"\n";}return s;}
+  const bg=document.getElementById('codebg');
+  const cols=[{left:'4%',dur:70},{left:'30%',dur:95},{left:'58%',dur:82},{left:'84%',dur:110}];
+  cols.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='col'; d.style.left=c.left; d.style.animationDuration=c.dur+'s';
+    const body=block(40); d.textContent=body+body; bg.appendChild(d);
+  });
+})();
+
+/* ---------------- emoji icons ---------------- */
+const EMO={
+  star:'⭐', flame:'🔥', 'layout-grid':'🎮', 'arrow-right':'➡️', 'arrow-left':'⬅️',
+  'circle-check':'✅', lock:'🔒', check:'✅', x:'❌', trophy:'🏆', 'refresh-cw':'🔄',
+  'trending-up':'📈', sparkles:'✨', 'hand-pointer':'👇', settings:'⚙️', brain:'🧠',
+  apple:'🍎', banana:'🍌', 'message-square':'💬', user:'🎭', search:'🔎', list:'📋',
+  users:'👥', target:'🎯', play:'▶️', mail:'✉️', calendar:'📅', calculator:'🔢',
+  code:'💻', flag:'🚩', 'circle-x':'❌', scale:'⚖️', clapperboard:'🎬', 'battery-low':'🔋',
+  briefcase:'💼', 'dollar-sign':'💲', unplug:'🔌', gauge:'⏱️', 'shield-alert':'🛡️',
+  accessibility:'♿', palette:'🎨', rocket:'🚀', 'flask-conical':'🧪', 'heart-handshake':'🤝',
+  eye:'👁️', gavel:'🧑‍⚖️', shield:'🛡️', crown:'👑', plus:'➕', download:'⬇️', share:'📤'
+};
+function icons(){}
+
+/* ---------------- state ---------------- */
+const FRESH={ guide:null, current:0, done:Array(11).fill(false), unlocked:[], score:0, streak:0, bestStreak:0, board:null, email:null };
+const S=Object.assign({},FRESH);
+try{ const s=JSON.parse(localStorage.getItem('decoded_v3')); if(s) Object.assign(S,s); }catch(e){}
+function save(){ try{ localStorage.setItem('decoded_v3',JSON.stringify(S)); }catch(e){} }
+let levelPts=0;
+
+const screen=document.getElementById('screen');
+const hud=document.getElementById('hud');
+const hdrMark=document.getElementById('hdrMark');
+
+/* ---------------- confetti feedback ---------------- */
+function confetti(){
+  const cv=document.createElement('canvas'); cv.style.cssText='position:fixed;inset:0;z-index:60;pointer-events:none'; cv.width=innerWidth; cv.height=innerHeight; document.body.appendChild(cv);
+  const x=cv.getContext('2d'), cols=['#C6FF3A','#F5F7F2','#3AE8FF','#8FBE1F'], P=[], cx=innerWidth/2;
+  for(let i=0;i<100;i++){ P.push({x:cx+(Math.random()-0.5)*220, y:innerHeight*0.26, vx:(Math.random()-0.5)*11, vy:Math.random()*-9-4, g:0.34, s:4+Math.random()*6, c:cols[i%cols.length], r:Math.random()*6, vr:(Math.random()-0.5)*0.45}); }
+  let f=0;
+  (function loop(){ f++; x.clearRect(0,0,cv.width,cv.height); P.forEach(p=>{ p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr; x.save(); x.translate(p.x,p.y); x.rotate(p.r); x.fillStyle=p.c; x.fillRect(-p.s/2,-p.s/2,p.s,p.s*1.6); x.restore(); }); if(f<120) requestAnimationFrame(loop); else cv.remove(); })();
+}
+function celebrate(){ confetti(); }
+
+/* ---------------- mascot (exactly as uploaded, no eye lines) ---------------- */
+function mascot(guide, cls){
+  const leo = guide==='leo';
+  const c = leo ? 'var(--cyan)' : 'var(--green)';
+  const antenna = leo
+    ? `<path d="M122 54 Q136 30 141 22" stroke="${c}" stroke-width="8" fill="none" stroke-linecap="round"/><rect x="132" y="8" width="18" height="18" rx="4" fill="${c}"/>`
+    : `<path d="M78 54 Q64 30 59 22" stroke="${c}" stroke-width="8" fill="none" stroke-linecap="round"/><circle cx="56" cy="18" r="12" fill="${c}"/>`;
+  const ears = leo ? `<rect x="19" y="103" width="12" height="27" rx="6" fill="${c}"/><rect x="169" y="103" width="12" height="27" rx="6" fill="${c}"/>` : '';
+  return `<svg viewBox="0 0 200 210" class="mascot ${cls||''}" xmlns="http://www.w3.org/2000/svg">
+    ${ears}
+    ${antenna}
+    <circle cx="100" cy="116" r="72" fill="${c}"/>
+    <ellipse cx="100" cy="127" rx="50" ry="32" fill="#0B0B0C"/>
+    <g class="eyes"><g class="blinker"><circle cx="84" cy="126" r="9.5" fill="${c}"/><circle cx="116" cy="126" r="9.5" fill="${c}"/></g></g>
+  </svg>`;
+}
+function gname(){ return S.guide==='leo'?'Leo':'Ada'; }
+
+/* ---------------- content ---------------- */
+const GLOSSARY=[
+  {term:"Machine Learning", def:"Software that learns patterns from examples instead of being told every rule. That learning is what makes something count as AI."},
+  {term:"Training Data", def:"The examples you feed a model to teach it. Better, fairer examples make a smarter model. Garbage in, garbage out."},
+  {term:"Large Language Model", def:"An AI like ChatGPT that works by predicting the most likely next word over and over. It is a very good guesser, not a mind."},
+  {term:"Hallucination", def:"When an AI states something false with total confidence. Confident does not mean correct, so verify anything that matters."},
+  {term:"Prompt Engineering", def:"The skill of asking clearly. Give the AI a role, specifics, a format, and an audience, and the output transforms."},
+  {term:"AI Agent", def:"An LLM given a goal plus tools like search, calendar, and email, which it uses across several steps to actually get things done."},
+  {term:"Vibe Coding", def:"Building software by describing what you want in plain language and letting AI write and fix the code, so you can create without coding line by line."},
+  {term:"Responsible AI Use", def:"Using AI honestly and safely: disclose when it matters, protect private data, watch for bias, and keep a human accountable for the result."},
+  {term:"AI Risks", def:"The real downsides to manage: biased outputs, convincing misinformation, privacy loss, over reliance, and security misuse."},
+  {term:"AI Opportunities", def:"Where AI creates value: saving time, widening access, speeding up discovery, and giving small teams the leverage of large ones."},
+  {term:"AI Policy", def:"The evolving rules that govern how AI is built and used, aiming at transparency, accountability, privacy, and safety. The specifics are still being debated worldwide."}
+];
+const LEVELS=[
+  {n:1, ch:"FOUNDATIONS", title:"What is AI, really?", tag:"Sort the rule followers from the learners"},
+  {n:2, ch:"", title:"How does it learn?", tag:"Train a model and watch data matter"},
+  {n:3, ch:"", title:"How does it guess?", tag:"Beat the AI at predicting the next word"},
+  {n:4, ch:"", title:"Why does it make things up?", tag:"Catch the confident false claims"},
+  {n:5, ch:"", title:"How do I talk to it?", tag:"Turn a weak prompt into a great one"},
+  {n:6, ch:"BUILDING WITH AI", title:"What is an agent?", tag:"Equip an AI to get real tasks done"},
+  {n:7, ch:"", title:"What is vibe coding?", tag:"Build software by describing it"},
+  {n:8, ch:"USING AI RESPONSIBLY", title:"Using AI the right way", tag:"Judge what is fair and safe to do"},
+  {n:9, ch:"RISKS AND OPPORTUNITIES", title:"The risks of AI", tag:"Name the danger in each scenario"},
+  {n:10, ch:"", title:"The opportunities in AI", tag:"Spot where AI creates real value"},
+  {n:11, ch:"AI AND SOCIETY", title:"How AI gets governed", tag:"Match each policy idea to its goal"}
+];
+const N=LEVELS.length;
+const RANKS=[[0,'CURIOUS'],[120,'AI AWARE'],[260,'AI LITERATE'],[420,'AI FLUENT'],[560,'AI DECODED']];
+function rankFor(sc){ let r=RANKS[0][1]; for(const [t,name] of RANKS){ if(sc>=t) r=name; } return r; }
+const MAXSCORE=660;
+
+const SEED_BOARD=[
+  {name:'EDDY', score:640},{name:'AVA', score:560},{name:'MAX', score:470},{name:'ZOE', score:395},{name:'KAI', score:300}
+];
+function boardList(){ if(!S.board){ S.board=SEED_BOARD.map(x=>Object.assign({},x)); save(); } return S.board; }
+
+/* ---------------- helpers ---------------- */
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+function I(name){ return `<span class="emo">${EMO[name]||''}</span>`; }
+function ada(text){ return `<div class="ada"><div class="gm">${mascot(S.guide,'bob')}</div><div><div class="who">${gname().toUpperCase()}, YOUR GUIDE</div><div class="bubble">${text}</div></div></div>`; }
+
+function renderHUD(){
+  hdrMark.innerHTML=mascot();
+  if(!S.guide){ hud.innerHTML=''; icons(); return; }
+  hud.innerHTML=`<div class="chip">${I('star')} <b>${S.score}</b></div>`+
+    (S.streak>=2?`<div class="chip"><span class="amber">${I('flame')}</span> ${S.streak}</div>`:``)+
+    `<div class="chip">${I('layout-grid')} <b>${S.done.filter(Boolean).length}</b>/${N}</div>`;
+  icons();
+}
+function popPoints(pts){
+  const b=document.getElementById('burst');
+  const n=el(`<div class="pop-pts">+${pts}${S.streak>=3?I('flame'):''}</div>`);
+  b.appendChild(n); icons(); setTimeout(()=>n.remove(),1000);
+}
+function award(correct, base){
+  if(correct){
+    S.streak++; S.bestStreak=Math.max(S.bestStreak,S.streak);
+    const mult=S.streak>=3?1.5:1, pts=Math.round(base*mult);
+    S.score+=pts; levelPts+=pts; save(); renderHUD(); popPoints(pts);
+    return pts;
+  } else { S.streak=0; save(); renderHUD(); return 0; }
+}
+function bonus(pts){ S.score+=pts; levelPts+=pts; save(); renderHUD(); popPoints(pts); }
+function completeLevel(i){
+  S.done[i]=true; if(!S.unlocked.includes(i)) S.unlocked.push(i);
+  if(S.current<i+1) S.current=Math.min(i+1,N); save(); renderHUD();
+}
+
+/* ---------------- boot / splash / avatar ---------------- */
+function boot(){ renderHUD(); if(!S.guide) renderSplash(); else renderMap(); }
+
+function renderSplash(){
+  screen.innerHTML=`
+    <div class="card splash">
+      <div class="bob">${mascot('ada','look')}</div>
+      <h2>DECODED</h2>
+      <p>Understand what AI actually is, in ${N} quick playable levels. No code, no math, and every bit of jargon explained the moment it shows up.</p>
+      <button class="btn primary big" id="start">Start</button>
+    </div>`;
+  icons();
+  document.getElementById('start').onclick=renderAvatar;
+}
+function renderAvatar(){
+  screen.innerHTML=`
+    <div class="card">
+      <h2>Pick your guide</h2>
+      <p class="lead">One of them walks you through every level. Totally your call, and you can switch later.</p>
+      <div class="avatars">
+        <div class="av" data-g="ada">${mascot('ada','look')}<h3>Ada</h3><p>Warm and encouraging</p></div>
+        <div class="av" data-g="leo">${mascot('leo','look')}<h3>Leo</h3><p>Cool and to the point</p></div>
+      </div>
+      <div class="row" style="margin-top:16px"><button class="btn primary big" id="go" disabled>Choose to continue</button></div>
+    </div>`;
+  icons();
+  let pick=null; const go=document.getElementById('go');
+  screen.querySelectorAll('.av').forEach(a=>{
+    a.onclick=()=>{ pick=a.dataset.g; screen.querySelectorAll('.av').forEach(x=>x.classList.remove('sel')); a.classList.add('sel'); go.disabled=false; go.textContent="Let's go"; icons(); };
+  });
+  go.onclick=()=>{ if(!pick)return; S.guide=pick; save(); renderHUD(); renderMap(); };
+}
+
+/* ---------------- map / home ---------------- */
+function renderMap(){
+  renderHUD();
+  const doneN=S.done.filter(Boolean).length, allDone=S.done.every(Boolean);
+  let rows='';
+  LEVELS.forEach((L,i)=>{
+    if(L.ch) rows+=`<div class="chapter">${L.ch}</div>`;
+    const done=S.done[i], unlocked=i<=S.current;
+    const cls=done?'done':(i===S.current?'current':''), lock=unlocked?'':'locked';
+    const status=done?`${I('circle-check')} DONE`:(unlocked?`PLAY ${I('arrow-right')}`:`${I('lock')} LOCKED`);
+    rows+=`<div class="lvl ${cls} ${lock}" data-i="${i}" style="animation-delay:${i*0.03}s">
+      <div class="num">${done?I('check'):L.n}</div>
+      <div class="info"><h3>${L.title}</h3><p>${L.tag}</p></div>
+      <div class="status">${status}</div></div>`;
+  });
+  const pct=Math.min(100,Math.round(S.score/MAXSCORE*100));
+  screen.innerHTML=`
+    <div class="card">
+      <div class="hero"><div class="bob">${mascot(S.guide,'look')}</div><div><h2>Welcome back</h2><p>${gname()} is ready. Pick a level and keep decoding.</p></div></div>
+      ${ada(doneN? `You are on <b>${S.score}</b> points, rank <b>${rankFor(S.score)}</b>. ${doneN<N?`Just <b>${N-doneN}</b> more level${N-doneN>1?'s':''} to fully decode AI. Keep the streak alive.`:`You cleared everything. Replay any level to beat your score.`}` : `Hi, I am <b>${gname()}</b>. Clear a level, earn points, unlock a concept. Answer fast and accurate to build a streak. Let us decode AI together.`)}
+      <div class="xpwrap">
+        <div class="xprow"><span>Knowledge</span><span><b>${rankFor(S.score)}</b> ${I('star')} ${S.score}</span></div>
+        <div class="xpbar"><div class="f" style="width:${pct}%"></div></div>
+      </div>
+      <div class="levels">${rows}</div>
+      <div class="row" style="margin-top:16px">
+        ${allDone?`<button class="btn primary" id="toCert">See your Decoded card ${I('arrow-right')}</button>`:''}
+        <button class="btn ghost" id="toBoard">${I('trophy')} Leaderboard</button>
+        <div class="spacer"></div>
+        <button class="linkbtn" id="switch">${I('refresh-cw')} Switch guide (${gname()})</button>
+      </div>
+    </div>`;
+  icons();
+  screen.querySelectorAll('.lvl').forEach(node=>{ const i=+node.dataset.i; if(i<=S.current) node.onclick=()=>renderLevel(i); });
+  const c=document.getElementById('toCert'); if(c) c.onclick=renderCert;
+  document.getElementById('toBoard').onclick=()=>renderBoard(false);
+  document.getElementById('switch').onclick=renderAvatar;
+}
+
+/* ---------------- level shell + finish ---------------- */
+function levelShell(i, adaText, howtoIcon, howto, bodyHtml){
+  const L=LEVELS[i];
+  screen.innerHTML=`
+    <div class="card">
+      <div class="row" style="margin:0 0 14px"><button class="btn ghost" id="back">${I('arrow-left')} Map</button><div class="spacer"></div><div class="chip">Level <b>${L.n}</b> / ${N}</div></div>
+      ${ada(adaText)}
+      <h2>${L.title}</h2>
+      <div class="howto"><span class="h">${I(howtoIcon)}</span><span>${howto}</span></div>
+      <div id="body">${bodyHtml}</div>
+    </div>`;
+  icons();
+  document.getElementById('back').onclick=renderMap;
+}
+function nudgeLine(){
+  if(S.streak>=3) return `<div class="nudge">${I('flame')} ${S.streak} in a row. You are on fire, do not stop now.</div>`;
+  if(S.streak===2) return `<div class="nudge">${I('flame')} Two correct in a row. One more starts a streak bonus of 1.5 times.</div>`;
+  return '';
+}
+function ctaBlock(){
+  return `<div class="cta">
+    <div class="cta-mascot">${mascot('ada','bob')}</div>
+    <div>
+      <h3>Looking to gain a deeper understanding of AI, and build with it too? 🚀</h3>
+      <p>Let's get to it.</p>
+      <a class="btn primary" href="https://www.eddysailab.com" target="_blank" rel="noopener">Start here 👉 www.eddysailab.com</a>
+    </div>
+  </div>`;
+}
+function finishBlock(i, revealHtml){
+  const g=GLOSSARY[i];
+  return `
+    <div class="ptsline"><span class="pi">${I('trending-up')}</span> <b>+${levelPts}</b> points this level, <b>${S.score}</b> total${S.bestStreak>=3?`, best streak ${S.bestStreak}`:''}</div>
+    <div class="reveal">${revealHtml}</div>
+    <div class="gcard"><div class="tagline">${I('sparkles')} CONCEPT UNLOCKED</div><h3>${g.term}</h3><p>${g.def}</p></div>
+    ${nudgeLine()}
+    <div class="row" style="margin-top:18px">
+      <button class="btn primary" id="next">${i<N-1?`Next level ${I('arrow-right')}`:`Finish and see your score ${I('arrow-right')}`}</button>
+      <button class="btn ghost" id="tomap">Back to map</button>
+    </div>
+    ${i===N-1?ctaBlock():''}`;
+}
+function wireFinish(i){
+  celebrate();
+  document.getElementById('next').onclick=()=>{ completeLevel(i); i<N-1?renderLevel(i+1):renderCert(); };
+  document.getElementById('tomap').onclick=()=>{ completeLevel(i); renderMap(); };
+}
+function renderLevel(i){ levelPts=0; [L1,L2,L3,L4,L5,L6,L7,L8,L9,L10,L11][i](); }
+
+/* ---------------- generic multiple choice engine ---------------- */
+function mcLevel(i, cfg){
+  let idx=0, correct=0;
+  levelShell(i, cfg.ada, cfg.howtoIcon, cfg.howto, `<div id="q"></div>`);
+  const q=document.getElementById('q');
+  function step(){
+    if(idx>=cfg.questions.length) return done();
+    const Q=cfg.questions[idx];
+    q.innerHTML=`
+      <div class="prompt-q">${Q.q}</div>
+      <div class="opts" id="opts">${Q.options.map((o,k)=>`<div class="opt tappable" data-k="${k}" style="animation-delay:${k*0.04}s">${o.icon?`<span class="oi">${I(o.icon)}</span>`:''}${o.t}</div>`).join('')}</div>
+      <div class="feedback" id="fb"></div>
+      <div class="who" style="margin-top:12px">QUESTION ${idx+1} OF ${cfg.questions.length}</div>`;
+    icons();
+    q.querySelectorAll('#opts .opt').forEach(o=>{
+      o.onclick=()=>{
+        const k=+o.dataset.k, ok=!!Q.options[k].ok; if(ok)correct++;
+        const pts=award(ok, cfg.base||10);
+        q.querySelectorAll('#opts .opt').forEach((x,j)=>{x.style.pointerEvents='none'; if(Q.options[j].ok)x.classList.add('correct'); else if(j===k&&!ok)x.classList.add('wrong');});
+        const fb=document.getElementById('fb');
+        fb.className='feedback show '+(ok?'good':'bad');
+        fb.innerHTML=(ok?`<span class="pts">${I('check')} +${pts}</span> `:``)+Q.explain;
+        fb.appendChild(el(`<div class="row" style="margin-top:12px"><button class="btn primary" id="cont">Continue</button></div>`));
+        icons();
+        document.getElementById('cont').onclick=()=>{ idx++; step(); };
+      };
+    });
+  }
+  function done(){ q.innerHTML=finishBlock(i, cfg.reveal(correct, cfg.questions.length)); icons(); wireFinish(i); }
+  step();
+}
+
+/* ---------------- LEVEL 1 ---------------- */
+function L1(){
+  const items=[
+    {t:"A calculator adding 2 plus 2", learns:false},
+    {t:"Spotify guessing songs you will love", learns:true},
+    {t:"An alarm going off at 7:00am", learns:false},
+    {t:"Your phone recognising your face", learns:true},
+    {t:"A thermostat switching on at 68 degrees", learns:false},
+    {t:"Your inbox filtering out spam", learns:true}
+  ];
+  let idx=0, scoreR=0;
+  levelShell(0,
+    `Ask one question for each item. Did a person write an exact rule for it, or did it figure it out from examples?`,
+    'hand-pointer',
+    `Read the item, then tap the box it belongs in. You earn <b>10 points</b> per correct sort.`,
+    `<div id="q"></div>`);
+  const q=document.getElementById('q');
+  function step(){
+    if(idx>=items.length) return done();
+    const it=items[idx];
+    q.innerHTML=`
+      <div class="prompt-q">${it.t}</div>
+      <div class="binrow">
+        <div class="bin" data-a="false"><div><span class="bi ico-lg">${I('settings')}</span><h4>Follows rules</h4><p>a human wrote exactly what to do</p></div></div>
+        <div class="bin" data-a="true"><div><span class="bi ico-lg">${I('brain')}</span><h4>Learns from examples</h4><p>it figured it out itself</p></div></div>
+      </div>
+      <div class="feedback" id="fb"></div>
+      <div class="who" style="margin-top:12px">ITEM ${idx+1} OF ${items.length}</div>`;
+    icons();
+    q.querySelectorAll('.bin').forEach(b=>{
+      b.onclick=()=>{
+        const ans=b.dataset.a==='true', ok=ans===it.learns; if(ok)scoreR++;
+        const pts=award(ok,10);
+        q.querySelectorAll('.bin').forEach(x=>x.style.pointerEvents='none');
+        const fb=document.getElementById('fb'); fb.className='feedback show '+(ok?'good':'bad');
+        fb.innerHTML=(ok?`<span class="pts">${I('check')} +${pts}</span> `:``)+(ok?`<b>${it.learns?'It learned this from many examples.':'A person wrote this exact rule.'}</b>`:`Not quite. This one <b>${it.learns?'learns from examples':'just follows a fixed rule'}</b>.`);
+        icons();
+        setTimeout(()=>{idx++;step();},1000);
+      };
+    });
+  }
+  function done(){
+    q.innerHTML=finishBlock(0,`
+      <div class="kicker">WHAT JUST HAPPENED</div>
+      <h3>The learns from examples pile is AI</h3>
+      <p>You got <b>${scoreR}/${items.length}</b>. Everything in that pile shares one thing. Nobody wrote a rule for every face or every spam email. The system studied thousands of examples and learned the pattern itself. That is <b>Machine Learning</b>, the engine under almost everything people call AI.</p>`);
+    icons(); wireFinish(0);
+  }
+  step();
+}
+
+/* ---------------- LEVEL 2 ---------------- */
+function L2(){
+  const train=[{show:"apple"},{show:"banana"},{show:"apple"},{show:"banana"},{show:"apple"},{show:"banana"}];
+  let idx=0, correct=0;
+  levelShell(1,
+    `You are the teacher now. Tag each fruit. The quality of your labels decides how smart your model turns out.`,
+    'hand-pointer',
+    `Tap the correct label for each fruit to build your training data. You earn <b>10 points</b> per correct label.`,
+    `<div id="q"></div>`);
+  const q=document.getElementById('q');
+  function step(){
+    if(idx>=train.length) return test();
+    const it=train[idx];
+    q.innerHTML=`
+      <div style="text-align:center;margin:14px 0"><span style="color:var(--green);font-size:52px;display:inline-flex">${it.show==='apple'?I('apple'):I('banana')}</span></div>
+      <p class="lead" style="text-align:center">What is this? Tap to add the label.</p>
+      <div class="opts">
+        <div class="opt tappable" data-a="apple"><span class="oi">${I('apple')}</span> Apple</div>
+        <div class="opt tappable" data-a="banana"><span class="oi">${I('banana')}</span> Banana</div>
+      </div>
+      <div class="who" style="margin-top:10px">TRAINING EXAMPLE ${idx+1} OF ${train.length}</div>`;
+    icons();
+    q.querySelectorAll('.opt').forEach(o=>{ o.onclick=()=>{ const ok=o.dataset.a===it.show; if(ok)correct++; award(ok,10); idx++; step(); }; });
+  }
+  function test(){
+    const acc=Math.round(correct/train.length*100);
+    const testItems=["apple","banana","apple","banana"];
+    q.innerHTML=`<p class="lead">Training done. Your model now meets <b>4 brand new fruits</b> it has never seen.</p><div class="log" id="tl"></div><div id="after"></div>`;
+    const tl=document.getElementById('tl');
+    testItems.forEach((f,k)=>{ setTimeout(()=>{
+      const right=(Math.random()*100)<acc, guess=right?f:(f==='apple'?'banana':'apple');
+      tl.appendChild(el(`<div class="line ${right?'ok':'fail'}"><span class="li">${I(right?'check':'x')}</span> Sees ${f}, predicts ${guess}</div>`));
+      icons();
+      if(k===testItems.length-1) setTimeout(after,450);
+    },520*(k+1)); });
+    function after(){
+      document.getElementById('after').innerHTML=finishBlock(1,`
+        <div class="kicker">WHAT JUST HAPPENED</div>
+        <h3>Your labels became your model's intelligence</h3>
+        <p>Your training was <b>${acc}% accurate</b>, so your model landed around <b>${acc}%</b> on new fruit too. It never understood apples. It copied the patterns in the examples you gave it. That is why data matters more than almost anything. Feed a model biased or sloppy examples and it will confidently repeat your mistakes. Garbage in, garbage out.</p>`);
+      icons(); wireFinish(1);
+    }
+  }
+  step();
+}
+
+/* ---------------- LEVEL 3 ---------------- */
+function L3(){
+  const rounds=[
+    {stub:"The cat sat on the ___", opts:[["mat",62],["sofa",27],["keyboard",8],["moon",3]]},
+    {stub:"I would love a hot cup of ___", opts:[["coffee",47],["tea",33],["cocoa",14],["soup",6]]},
+    {stub:"Once upon a ___", opts:[["time",91],["dragon",4],["hill",3],["moon",2]]}
+  ];
+  let idx=0, hits=0;
+  levelShell(2,
+    `Chatbots feel magical, but underneath they do one thing. They guess the next word, over and over. Let us play the same game.`,
+    'hand-pointer',
+    `Tap the word you think comes next. Match the AI's top pick for <b>15 points</b>.`,
+    `<div id="q"></div>`);
+  const q=document.getElementById('q');
+  function step(){
+    if(idx>=rounds.length) return done();
+    const r=rounds[idx];
+    q.innerHTML=`
+      <div class="prompt-q">${r.stub}</div>
+      <div class="opts" id="picks">${r.opts.map((o,k)=>`<div class="opt tappable" data-k="${k}"><span class="oi">${I('message-square')}</span>${o[0]}</div>`).join('')}</div>
+      <div id="fb"></div>
+      <div class="who" style="margin-top:10px">SENTENCE ${idx+1} OF ${rounds.length}</div>`;
+    icons();
+    const top=r.opts.reduce((m,o,k)=>o[1]>r.opts[m][1]?k:m,0);
+    q.querySelectorAll('#picks .opt').forEach(o=>{
+      o.onclick=()=>{
+        const k=+o.dataset.k, ok=k===top; if(ok)hits++;
+        const pts=award(ok,15);
+        q.querySelectorAll('#picks .opt').forEach(x=>{x.style.pointerEvents='none'; if(+x.dataset.k===top)x.classList.add('correct'); else if(x===o)x.classList.add('wrong');});
+        const fb=document.getElementById('fb');
+        fb.innerHTML=`<div class="feedback show ${ok?'good':'bad'}">${ok?`<span class="pts">${I('check')} +${pts}</span> You matched the AI's top pick.`:`The AI would most likely say <b>${r.opts[top][0]}</b>.`}</div>
+          <div style="margin-top:14px">${r.opts.map((o,j)=>`<div class="bar ${j===top?'':'dim'}"><div class="lab"><span>${o[0]}</span><span>${o[1]}%</span></div><div class="track"><div class="fill" style="width:0"></div></div></div>`).join('')}</div>
+          <div class="row" style="margin-top:12px"><button class="btn primary" id="cont">Continue</button></div>`;
+        icons();
+        setTimeout(()=>fb.querySelectorAll('.fill').forEach((f,j)=>f.style.width=r.opts[j][1]+'%'),60);
+        document.getElementById('cont').onclick=()=>{idx++;step();};
+      };
+    });
+  }
+  function done(){
+    q.innerHTML=finishBlock(2,`
+      <div class="kicker">WHAT JUST HAPPENED</div>
+      <h3>A language model is a next word prediction machine</h3>
+      <p>You matched the AI on <b>${hits}/${rounds.length}</b>. A <b>Large Language Model</b>, the tech behind ChatGPT, Claude, and Gemini, does exactly what you just did. It looks at the words so far, picks the most likely next one, then repeats. It read a huge chunk of the internet to get good at it. Powerful, but it is guessing, not knowing. That is why the next level matters.</p>`);
+    icons(); wireFinish(2);
+  }
+  step();
+}
+
+/* ---------------- LEVEL 4 ---------------- */
+function L4(){
+  const claims=[
+    {t:"The Eiffel Tower is located in Paris.", fake:false, why:"It has stood in Paris since 1889."},
+    {t:"The Eiffel Tower was moved to Berlin in 1994 for a festival.", fake:true, why:"It has never been moved. Invented, but it sounds specific, which is the trap."},
+    {t:"Honey found in ancient tombs can still be edible thousands of years later.", fake:false, why:"Honey's chemistry lets it last for millennia."},
+    {t:"Sharks are mammals that breathe air through a blowhole.", fake:true, why:"Sharks are fish with gills, not mammals."},
+    {t:"An octopus has three hearts.", fake:false, why:"Two pump blood to the gills, one to the body."},
+    {t:"The Great Wall of China is the only human made object visible from the Moon.", fake:true, why:"A long repeated myth. It is not visible to the naked eye from the Moon."}
+  ];
+  mcLevel(3,{
+    ada:`Because an AI is guessing, it sometimes produces something false, stated with total confidence. That is a hallucination.`,
+    howtoIcon:'hand-pointer',
+    howto:`Real fact, or confident nonsense? Tap your verdict. You earn <b>10 points</b> each time you are right.`,
+    base:10,
+    questions:claims.map(c=>({
+      q:`"${c.t}"`,
+      options:[{t:'Real fact', ok:!c.fake, icon:'circle-check'},{t:'Hallucination', ok:c.fake, icon:'flag'}],
+      explain:`This is <b>${c.fake?'a hallucination':'true'}</b>. ${c.why}`
+    })),
+    reveal:(correct,total)=>`
+      <div class="kicker">WHAT JUST HAPPENED</div>
+      <h3>Confident does not mean correct</h3>
+      <p>You caught <b>${correct}/${total}</b>. The false claims were not hesitant. They sounded just as sure as the true ones. That is the trap. An AI generates the most plausible sounding words, not the most true ones, so it can invent facts, sources, and quotes without blinking. The habit that protects you is simple. Verify anything that matters. AI is a brilliant first draft, never the final word.</p>`
+  });
+}
+
+/* ---------------- LEVEL 5 ---------------- */
+function L5(){
+  const parts={
+    role:{label:"Add a role", icon:'user', text:"You are a friendly nutrition coach. "},
+    spec:{label:"Add specifics", icon:'search', text:"Give me a 3 day high protein meal plan using cheap ingredients. "},
+    fmt:{label:"Add a format", icon:'list', text:"Format it as a simple table with a shopping list underneath. "},
+    aud:{label:"Add the audience", icon:'users', text:"Keep it beginner friendly for someone who can barely cook."}
+  };
+  const state={role:false,spec:false,fmt:false,aud:false};
+  levelShell(4,
+    `Same AI, wildly different results. It all comes down to how you ask. Add a role, specifics, a format, and the audience.`,
+    'hand-pointer',
+    `Tap each upgrade chip and watch the prompt and quality meter improve. Turn on <b>all four</b> to finish. You earn <b>10 points</b> per upgrade.`,
+    `
+    <div class="chips" id="chips">${Object.entries(parts).map(([k,v])=>`<div class="pchip" data-k="${k}"><span class="oi">${I(v.icon)}</span>${v.label}</div>`).join('')}</div>
+    <div class="who" style="margin-bottom:6px">YOUR PROMPT <span id="cnt" style="color:var(--green)">(0 of 4 upgrades)</span></div>
+    <div class="preview" id="prev"></div>
+    <div class="meter"><div class="fill" id="mfill"></div></div>
+    <div class="meterlab"><span>Vague</span><span id="mword">Weak prompt</span><span>Pro</span></div>
+    <div id="q"></div>`);
+  const prev=document.getElementById('prev'), mfill=document.getElementById('mfill'), mword=document.getElementById('mword'), cnt=document.getElementById('cnt');
+  function paint(){
+    const on=Object.keys(state).filter(k=>state[k]);
+    const txt=(state.role?parts.role.text:'')+(state.spec?parts.spec.text:'Tell me about food. ')+(state.fmt?parts.fmt.text:'')+(state.aud?parts.aud.text:'');
+    if(on.length===0) prev.innerHTML=`<span class="ph">"Tell me about food." The AI has no idea what you actually want.</span>`;
+    else prev.textContent='"'+txt.trim()+'"';
+    cnt.textContent=`(${on.length} of 4 upgrades)`;
+    mfill.style.width=Math.min(8+on.length*23,100)+'%';
+    mword.textContent=['Weak prompt','Getting warmer','Solid','Strong','Pro level'][on.length];
+    const done=document.getElementById('q');
+    if(on.length===4 && !done.dataset.filled){
+      done.dataset.filled='1'; bonus(20);
+      done.innerHTML=finishBlock(4,`
+        <div class="kicker">WHAT JUST HAPPENED</div>
+        <h3>That skill is called prompt engineering</h3>
+        <p>You did not change the AI. You changed the ask. Role, specifics, format, audience. Four levers that turn a shrug into exactly what you needed. It is the single highest leverage AI skill, and you just did it. Vague in, vague out. Specific in, gold out.</p>`);
+      icons(); wireFinish(4);
+    }
+  }
+  document.querySelectorAll('#chips .pchip').forEach(c=>{
+    c.onclick=()=>{ const k=c.dataset.k, was=state[k]; state[k]=!was; c.classList.toggle('on',state[k]); icons(); if(!was) award(true,10); paint(); };
+  });
+  paint();
+}
+
+/* ---------------- LEVEL 6 (agent) ---------------- */
+function L6(){
+  const need=['search','calendar','email'];
+  const tools={
+    search:{ic:"search",name:"Web Search",desc:"look things up online"},
+    calendar:{ic:"calendar",name:"Calendar",desc:"check when you are free"},
+    email:{ic:"mail",name:"Email",desc:"send messages"},
+    calc:{ic:"calculator",name:"Calculator",desc:"crunch numbers"}
+  };
+  const picked={search:false,calendar:false,email:false,calc:false};
+  levelShell(5,
+    `The frontier is not chat, it is agents. Give an AI a goal and tools, and it takes real steps on its own.`,
+    'hand-pointer',
+    `Tap the tools your agent needs for the goal below, then press Run. One tool is a trap. Nail it for a <b>30 point bonus</b>.`,
+    `
+    <div class="prompt-q" style="text-align:left"><span class="who" style="display:flex;align-items:center;gap:6px;margin-bottom:6px">${I('target')} THE GOAL</span>Find a good pizza place, check I am free this weekend, and email my friend Sam to invite them.</div>
+    <div class="who" style="margin:16px 0 6px">EQUIP YOUR AGENT</div>
+    <div class="tools" id="tools">${Object.entries(tools).map(([k,t])=>`<div class="tool" data-k="${k}"><span class="ic ico-lg">${I(t.ic)}</span><div><b>${t.name}</b><small>${t.desc}</small></div></div>`).join('')}</div>
+    <div class="row"><button class="btn primary" id="run" disabled>${I('play')} Run agent</button></div>
+    <div id="q"></div>`);
+  icons();
+  const runBtn=document.getElementById('run');
+  document.querySelectorAll('#tools .tool').forEach(t=>{
+    t.onclick=()=>{ const k=t.dataset.k; picked[k]=!picked[k]; t.classList.toggle('on',picked[k]); runBtn.disabled=!Object.values(picked).some(Boolean); };
+  });
+  runBtn.onclick=()=>{
+    runBtn.disabled=true;
+    document.querySelectorAll('#tools .tool').forEach(t=>t.style.pointerEvents='none');
+    const q=document.getElementById('q');
+    const steps=[
+      {tool:'search', txt:'Searching the web for top rated pizza nearby, found Tony\'s Slice rated 4.7'},
+      {tool:'calendar', txt:'Checking your calendar, Saturday evening is free'},
+      {tool:'email', txt:'Emailing Sam, pizza at Tony\'s this Saturday 7pm'}
+    ];
+    q.innerHTML=`<div class="who" style="margin:16px 0 6px">AGENT LOG</div><div class="log" id="log"></div><div id="after"></div>`;
+    const log=document.getElementById('log'); let delay=300;
+    steps.forEach(s=>{ setTimeout(()=>{
+      if(picked[s.tool]) log.appendChild(el(`<div class="line ok"><span class="li">${I('check')}</span> ${s.txt}</div>`));
+      else log.appendChild(el(`<div class="line fail"><span class="li">${I('x')}</span> Wanted to use ${tools[s.tool].name}, but it was not equipped. Step failed.</div>`));
+      icons();
+    },delay); delay+=800; });
+    setTimeout(()=>{
+      const perfect=need.every(k=>picked[k]);
+      if(perfect && !picked.calc) bonus(30); else if(perfect) bonus(15);
+      document.getElementById('after').innerHTML=finishBlock(5,`
+        <div class="kicker">WHAT JUST HAPPENED</div>
+        <h3>${perfect?'Your agent completed the whole mission':'Your agent got stuck, missing a tool'}</h3>
+        <p>${perfect
+          ? 'You gave a goal, the AI broke it into steps, and it reached for the right tool at each one. Search, then calendar, then email. That is an <b>AI Agent</b>. Not just talking, but doing.'+(picked.calc?' You also packed the Calculator, harmless, but a lean agent only carries what the job needs.':' The Calculator was a trap. A lean agent only carries what the job needs.')
+          : 'See how it stalled the moment it needed a tool it did not have? An <b>AI Agent</b> is only as capable as the tools you give it. It plans steps toward a goal and uses tools to act, but hand it the wrong kit and it gets stuck. It needed Search, Calendar, and Email. The Calculator was a trap.'}</p>`);
+      icons(); wireFinish(5);
+    }, delay+250);
+  };
+}
+
+/* ---------------- LEVEL 7 (vibe coding, order game) ---------------- */
+function L7(){
+  const correct=[
+    {t:"Describe what you want in plain English", icon:'message-square'},
+    {t:"The AI writes the code for you", icon:'code'},
+    {t:"Run it and see what happens", icon:'play'},
+    {t:"Refine by describing the change", icon:'refresh-cw'}
+  ];
+  const shuffled=correct.map((s,i)=>({s,i})).sort(()=>Math.random()-0.5);
+  let chosen=[];
+  levelShell(6,
+    `You do not need to know how to code to build software any more. You describe what you want, the AI writes it, you try it, you refine. That loop has a name.`,
+    'hand-pointer',
+    `Tap the steps in the right order, 1 to 4. You earn <b>10 points</b> for each step placed correctly.`,
+    `<div class="orderpool" id="pool">${shuffled.map(x=>`<div class="ostep" data-i="${x.i}"><span class="si">${I(x.s.icon)}</span>${x.s.t}</div>`).join('')}</div><div id="q"></div>`);
+  icons();
+  const pool=document.getElementById('pool');
+  pool.querySelectorAll('.ostep').forEach(node=>{
+    node.onclick=()=>{
+      if(node.classList.contains('picked'))return;
+      chosen.push(+node.dataset.i);
+      node.classList.add('picked');
+      node.insertAdjacentHTML('beforeend',`<span class="badge">${chosen.length}</span>`);
+      if(chosen.length===correct.length) finish();
+    };
+  });
+  function finish(){
+    let got=0; chosen.forEach((val,pos)=>{ if(val===pos) got++; });
+    for(let p=0;p<chosen.length;p++){ award(chosen[p]===p, 10); }
+    document.getElementById('q').innerHTML=finishBlock(6,`
+      <div class="kicker">WHAT JUST HAPPENED</div>
+      <h3>That loop is vibe coding</h3>
+      <p>You placed <b>${got}/${correct.length}</b> steps correctly. The right order is describe, generate, run, refine. This is <b>vibe coding</b>. You lead with plain language and the AI handles the syntax, so people who never learned to code can now build real tools by describing them and refining in a conversation. One caution. Always run and review what the AI builds, because it can produce code that looks right but is not.</p>`);
+    icons(); wireFinish(6);
+  }
+}
+
+/* ---------------- LEVEL 8 (responsible use) ---------------- */
+function L8(){
+  const S8=[
+    {t:"Using AI to brainstorm ideas, then doing the work yourself.", ok:true, why:"Brainstorming help is fine when you own and check the final work."},
+    {t:"Submitting an AI written essay as your own original work for a grade.", ok:false, why:"Passing AI work off as your own is dishonest and usually against the rules."},
+    {t:"Pasting a client's private medical records into a free public AI tool.", ok:false, why:"Sensitive data can be stored or exposed. Keep private data out of public tools."},
+    {t:"Drafting a first version of an email with AI, then editing and fact checking it.", ok:true, why:"AI as a first draft with a human check is responsible use."},
+    {t:"Letting an AI hiring tool reject candidates with no human review.", ok:false, why:"AI can carry bias. Keep a human accountable for high stakes decisions."}
+  ];
+  mcLevel(7,{
+    ada:`AI is powerful, so using it well matters. Responsible use comes down to being honest, protecting private data, and keeping a human accountable.`,
+    howtoIcon:'hand-pointer',
+    howto:`Is each use okay, or not okay? Tap your verdict. You earn <b>10 points</b> each time you are right.`,
+    base:10,
+    questions:S8.map(s=>({
+      q:s.t,
+      options:[{t:'Okay to do', ok:s.ok, icon:'circle-check'},{t:'Not okay', ok:!s.ok, icon:'circle-x'}],
+      explain:`This is <b>${s.ok?'okay':'not okay'}</b>. ${s.why}`
+    })),
+    reveal:(correct,total)=>`
+      <div class="kicker">WHAT JUST HAPPENED</div>
+      <h3>Responsible AI use is a habit, not a rulebook</h3>
+      <p>You judged <b>${correct}/${total}</b> correctly. The pattern is clear. AI is great for drafting, brainstorming, and speeding up routine work. It is not okay to pass its work off as your own, to feed it private data, or to let it make high stakes calls about people with no human in the loop. Disclose when it matters, protect what is private, watch for bias, and keep a person accountable for the result.</p>`
+  });
+}
+
+/* ---------------- LEVEL 9 (risks) ---------------- */
+function L9(){
+  mcLevel(8,{
+    ada:`AI has real risks. The good news is that knowing them by name is most of what it takes to use AI safely.`,
+    howtoIcon:'hand-pointer',
+    howto:`Read each scenario and tap the risk it shows. You earn <b>12 points</b> per correct answer.`,
+    base:12,
+    questions:[
+      {q:"A face recognition system works worse for some skin tones because its training data was not diverse.",
+       options:[{t:'Bias',ok:true,icon:'scale'},{t:'Deepfakes',ok:false,icon:'clapperboard'},{t:'Battery drain',ok:false,icon:'battery-low'},{t:'Job loss',ok:false,icon:'briefcase'}],
+       explain:`This is <b>bias</b>. When training data is not representative, the model performs unevenly across groups.`},
+      {q:"A realistic video shows a public figure saying something they never actually said.",
+       options:[{t:'Deepfakes and misinformation',ok:true,icon:'clapperboard'},{t:'Bias',ok:false,icon:'scale'},{t:'Privacy',ok:false,icon:'lock'},{t:'Cost',ok:false,icon:'dollar-sign'}],
+       explain:`This is a <b>deepfake</b>. AI can fabricate convincing media, which fuels misinformation.`},
+      {q:"Students stop learning to write because they let AI do all of it for them.",
+       options:[{t:'Over reliance',ok:true,icon:'unplug'},{t:'Bias',ok:false,icon:'scale'},{t:'Deepfakes',ok:false,icon:'clapperboard'},{t:'Speed',ok:false,icon:'gauge'}],
+       explain:`This is <b>over reliance</b>. Leaning on AI for everything can erode your own skills.`},
+      {q:"Someone uses AI to write harmful software much faster than before.",
+       options:[{t:'Security misuse',ok:true,icon:'shield-alert'},{t:'Accessibility',ok:false,icon:'accessibility'},{t:'Creativity',ok:false,icon:'palette'},{t:'Bias',ok:false,icon:'scale'}],
+       explain:`This is <b>security misuse</b>. The same power that helps can be turned to harm.`}
+    ],
+    reveal:(correct,total)=>`
+      <div class="kicker">WHAT JUST HAPPENED</div>
+      <h3>Named risks are manageable risks</h3>
+      <p>You spotted <b>${correct}/${total}</b>. The big ones are bias, misinformation and deepfakes, privacy loss, over reliance, and security misuse. None of this means AI is bad. It means you stay a little skeptical, protect your data, keep your own skills sharp, and question media that seems designed to provoke you. Awareness is the safety feature.</p>`
+  });
+}
+
+/* ---------------- LEVEL 10 (opportunities) ---------------- */
+function L10(){
+  mcLevel(9,{
+    ada:`Now the upside. This is where AI gets genuinely exciting. Spot the opportunity in each story.`,
+    howtoIcon:'hand-pointer',
+    howto:`Read each scenario and tap the opportunity it unlocks. You earn <b>12 points</b> per correct answer.`,
+    base:12,
+    questions:[
+      {q:"A solo founder uses AI to handle support replies, marketing copy, and bookkeeping.",
+       options:[{t:'Small teams get big team leverage',ok:true,icon:'rocket'},{t:'More bias',ok:false,icon:'scale'},{t:'Higher costs',ok:false,icon:'dollar-sign'},{t:'Slower work',ok:false,icon:'gauge'}],
+       explain:`This is <b>leverage</b>. One person can now do the work that used to need a whole team.`},
+      {q:"An app instantly translates a lesson into 50 languages, including sign language avatars.",
+       options:[{t:'Wider access and inclusion',ok:true,icon:'accessibility'},{t:'Deepfakes',ok:false,icon:'clapperboard'},{t:'Privacy loss',ok:false,icon:'lock'},{t:'Over reliance',ok:false,icon:'unplug'}],
+       explain:`This is <b>accessibility</b>. AI can remove barriers of language and ability.`},
+      {q:"Researchers use AI to screen millions of molecules for a promising new medicine.",
+       options:[{t:'Faster discovery',ok:true,icon:'flask-conical'},{t:'Job loss',ok:false,icon:'briefcase'},{t:'Bias',ok:false,icon:'scale'},{t:'Cost',ok:false,icon:'dollar-sign'}],
+       explain:`This is <b>faster discovery</b>. AI can explore far more possibilities than people can by hand.`},
+      {q:"AI drafts routine reports so a nurse can spend more time with patients.",
+       options:[{t:'More time for human work',ok:true,icon:'heart-handshake'},{t:'Misinformation',ok:false,icon:'clapperboard'},{t:'Security misuse',ok:false,icon:'shield-alert'},{t:'Battery drain',ok:false,icon:'battery-low'}],
+       explain:`This is <b>freeing up time</b>. AI takes the busywork so people focus on what only people can do.`}
+    ],
+    reveal:(correct,total)=>`
+      <div class="kicker">WHAT JUST HAPPENED</div>
+      <h3>AI is leverage you can point at anything</h3>
+      <p>You caught <b>${correct}/${total}</b>. Saving time, widening access, speeding up discovery, and freeing people for human work. The through line is leverage. AI multiplies what one person or one small team can do. The people who win with AI are not the ones who fear it or worship it. They are the ones who learn to aim it, which is exactly what you are doing right now.</p>`
+  });
+}
+
+/* ---------------- LEVEL 11 (policy) ---------------- */
+function L11(){
+  mcLevel(10,{
+    ada:`Because AI is so powerful, governments and companies are writing rules for it. Match each rule to the goal behind it.`,
+    howtoIcon:'hand-pointer',
+    howto:`Read each rule and tap the principle it protects. You earn <b>12 points</b> per correct answer.`,
+    base:12,
+    questions:[
+      {q:"A rule says companies must tell you when you are talking to an AI instead of a human.",
+       options:[{t:'Transparency',ok:true,icon:'eye'},{t:'Privacy',ok:false,icon:'lock'},{t:'Safety',ok:false,icon:'shield'},{t:'Speed',ok:false,icon:'gauge'}],
+       explain:`This is <b>transparency</b>. People deserve to know when AI is involved.`},
+      {q:"A rule says a person, not just the algorithm, is responsible if an AI system causes harm.",
+       options:[{t:'Accountability',ok:true,icon:'gavel'},{t:'Transparency',ok:false,icon:'eye'},{t:'Privacy',ok:false,icon:'lock'},{t:'Access',ok:false,icon:'accessibility'}],
+       explain:`This is <b>accountability</b>. Someone must answer for what an AI system does.`},
+      {q:"A rule limits how your personal data can be collected and used to train AI.",
+       options:[{t:'Privacy',ok:true,icon:'lock'},{t:'Safety',ok:false,icon:'shield'},{t:'Transparency',ok:false,icon:'eye'},{t:'Cost',ok:false,icon:'dollar-sign'}],
+       explain:`This is <b>privacy</b>. It protects your data from being used without limits.`},
+      {q:"A rule requires extra testing before an AI can be used to help diagnose illness.",
+       options:[{t:'Safety',ok:true,icon:'shield'},{t:'Accountability',ok:false,icon:'gavel'},{t:'Transparency',ok:false,icon:'eye'},{t:'Access',ok:false,icon:'accessibility'}],
+       explain:`This is <b>safety</b>. High stakes systems get tested before they are trusted.`}
+    ],
+    reveal:(correct,total)=>`
+      <div class="kicker">WHAT JUST HAPPENED</div>
+      <h3>Policy is still being written</h3>
+      <p>You matched <b>${correct}/${total}</b>. Most AI rules around the world aim at the same four goals. Transparency, accountability, privacy, and safety. The details differ a lot from place to place, and reasonable people disagree about how far the rules should go. That debate is live and changing fast, so the useful move is to stay informed and form your own view rather than assume the rules are settled.</p>`
+  });
+}
+
+/* ---------------- share card (canvas, no backend) ---------------- */
+function rr(x,l,t,w,h,r){ x.moveTo(l+r,t); x.arcTo(l+w,t,l+w,t+h,r); x.arcTo(l+w,t+h,l,t+h,r); x.arcTo(l,t+h,l,t,r); x.arcTo(l,t,l+w,t,r); }
+function drawMascot(x,cx,cy,s,guide){
+  const leo=guide==='leo', col=leo?'#3AE8FF':'#C6FF3A';
+  const px=v=>cx+(v-100)*s, py=v=>cy+(v-116)*s, T=2*Math.PI;
+  x.fillStyle=col; x.strokeStyle=col; x.lineCap='round';
+  x.lineWidth=8*s; x.beginPath();
+  if(leo){ x.moveTo(px(122),py(54)); x.quadraticCurveTo(px(136),py(30),px(141),py(22)); }
+  else { x.moveTo(px(78),py(54)); x.quadraticCurveTo(px(64),py(30),px(59),py(22)); }
+  x.stroke();
+  x.beginPath(); if(leo){ rr(x,px(132),py(8),18*s,18*s,4*s); } else { x.arc(px(56),py(18),12*s,0,T); } x.fill();
+  if(leo){ x.beginPath(); rr(x,px(19),py(103),12*s,27*s,6*s); x.fill(); x.beginPath(); rr(x,px(169),py(103),12*s,27*s,6*s); x.fill(); }
+  x.beginPath(); x.arc(cx,cy,72*s,0,T); x.fill();
+  x.fillStyle='#0B0B0C'; x.beginPath(); x.ellipse(px(100),py(127),50*s,32*s,0,0,T); x.fill();
+  x.fillStyle=col; x.beginPath(); x.arc(px(84),py(126),9.5*s,0,T); x.fill(); x.beginPath(); x.arc(px(116),py(126),9.5*s,0,T); x.fill();
+}
+function buildShareCanvas(){
+  const cv=document.createElement('canvas'); cv.width=1080; cv.height=1080;
+  const x=cv.getContext('2d');
+  x.fillStyle='#0B0B0C'; x.fillRect(0,0,1080,1080);
+  const g=x.createRadialGradient(820,180,50,820,180,760); g.addColorStop(0,'rgba(198,255,58,0.18)'); g.addColorStop(1,'rgba(198,255,58,0)');
+  x.fillStyle=g; x.fillRect(0,0,1080,1080);
+  x.strokeStyle='#2A2A31'; x.lineWidth=4; x.strokeRect(42,42,996,996);
+  drawMascot(x,540,278,1.85,S.guide);
+  x.textAlign='center';
+  x.fillStyle='#F5F7F2'; x.font='800 66px Inter,Arial,sans-serif'; x.fillText('DECODED',540,470);
+  x.fillStyle='#9A9AA3'; x.font='700 22px Inter,Arial'; x.fillText("BY EDDY'S AI LAB",540,506);
+  x.fillStyle='#C6FF3A'; x.font='800 150px Inter,Arial'; x.fillText(String(S.score),540,690);
+  x.fillStyle='#9A9AA3'; x.font='700 30px Inter,Arial'; x.fillText('POINTS   RANK '+rankFor(S.score),540,742);
+  x.fillStyle='#F5F7F2'; x.font='700 44px Inter,Arial'; x.fillText('I decoded AI. Can you?',540,858);
+  x.fillStyle='#C6FF3A'; x.font='800 36px Inter,Arial'; x.fillText('Play free at www.eddysailab.com',540,958);
+  return cv;
+}
+function downloadShare(){
+  window._shareCv.toBlob(b=>{ const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='decoded-score.png'; a.click(); setTimeout(()=>URL.revokeObjectURL(u),2000); });
+}
+function shareResult(){
+  const text=`I scored ${S.score} on Decoded and reached rank ${rankFor(S.score)}. Can you beat me? Play free at www.eddysailab.com`;
+  try{
+    window._shareCv.toBlob(async b=>{
+      const file=new File([b],'decoded-score.png',{type:'image/png'});
+      if(navigator.canShare && navigator.canShare({files:[file]})){ try{ await navigator.share({files:[file],text,title:'Decoded'}); }catch(e){} }
+      else if(navigator.share){ try{ await navigator.share({text,title:'Decoded',url:'https://www.eddysailab.com'}); }catch(e){} }
+      else { downloadShare(); }
+    });
+  }catch(e){ downloadShare(); }
+}
+
+/* ---------------- email capture ----------------
+   To collect emails for real, paste your form endpoint below
+   (Formspree, ConvertKit, Mailchimp, etc). Leave blank to just
+   store locally during the prototype. */
+const FORM_ENDPOINT='';
+function submitEmail(){
+  const inp=document.getElementById('email'); const v=(inp.value||'').trim();
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){ inp.style.borderColor='var(--red)'; inp.focus(); return; }
+  S.email=v; save();
+  if(FORM_ENDPOINT){ try{ fetch(FORM_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify({email:v,score:S.score,rank:rankFor(S.score)})}).catch(()=>{}); }catch(e){} }
+  showEmailDone();
+}
+function showEmailDone(){
+  const w=document.getElementById('emailWrap');
+  if(w) w.innerHTML=`<div class="reveal"><div class="kicker">${I('circle-check')} YOU ARE IN</div><h3>Your next step is on the way</h3><p>Thanks for playing. Keep going with deeper AI training at <a href="https://www.eddysailab.com" target="_blank" rel="noopener" style="color:var(--green);font-weight:700">www.eddysailab.com</a>.</p></div>`;
+}
+
+/* ---------------- certificate ---------------- */
+function renderCert(){
+  const deck=GLOSSARY.map(g=>`<div class="g"><b>${g.term}</b><p>${g.def}</p></div>`).join('');
+  screen.innerHTML=`
+    <div class="card cert">
+      ${mascot(S.guide,'bob')}
+      <div class="who" style="text-align:center">CERTIFIED BY EDDY'S AI LAB</div>
+      <h2>You have Decoded AI</h2>
+      <div class="big-score">${I('star')} ${S.score}</div>
+      <div class="rank">RANK, ${rankFor(S.score)}${S.bestStreak>=3?`, BEST STREAK ${S.bestStreak}`:''}</div>
+      <div class="pillrow">${GLOSSARY.map(g=>`<span class="pill">${g.term}</span>`).join('')}</div>
+      <p class="lead" style="text-align:center;max-width:470px;margin:6px auto 0">You now understand, in plain English, what AI is, how it learns and guesses, why it makes things up, how to talk to it, how to build with it, how to use it responsibly, and its risks, opportunities, and rules. That is more than most people can say.</p>
+      <div class="row" style="justify-content:center;margin-top:18px"><button class="btn primary" id="addlb">${I('trophy')} Add my score to the leaderboard</button></div>
+    </div>
+    <div class="card">
+      <h2>Share your result</h2>
+      <p class="lead">Post it and challenge a friend to beat your score.</p>
+      <div class="sharecard" id="sharePreview"></div>
+      <div class="row" style="justify-content:center;margin-top:14px"><button class="btn primary" id="dl">${I('download')} Download image</button><button class="btn ghost" id="sh">${I('share')} Share</button></div>
+      <hr>
+      <div id="emailWrap">
+        <h2>Get your free AI starter guide</h2>
+        <p class="lead">Drop your email and we will send your next step, deeper AI training from Eddy's AI Lab.</p>
+        <div class="addbox"><input id="email" type="email" placeholder="you@email.com"><button class="btn primary" id="subEmail">Send it to me</button></div>
+      </div>
+    </div>
+    <div class="card">
+      ${ada(`Proud of you. Replay any level to push your score higher, or start fresh.`)}
+      <h2 style="margin-bottom:2px">Your AI concept deck</h2>
+      <p class="lead">Eleven ideas, plain English, yours to keep.</p>
+      <div class="deck">${deck}</div>
+      <div class="row" style="margin-top:20px">
+        <button class="btn primary" id="replay">Back to the map</button>
+        <button class="btn ghost" id="reset">Reset everything</button>
+      </div>
+      ${ctaBlock()}
+    </div>`;
+  icons();
+  const cv=buildShareCanvas(); window._shareCv=cv;
+  cv.style.width='100%'; cv.style.maxWidth='320px'; cv.style.display='block'; cv.style.margin='0 auto'; cv.style.borderRadius='14px'; cv.style.border='1px solid var(--line)';
+  const sp=document.getElementById('sharePreview'); if(sp) sp.appendChild(cv);
+  const dl=document.getElementById('dl'); if(dl) dl.onclick=downloadShare;
+  const sh=document.getElementById('sh'); if(sh) sh.onclick=shareResult;
+  const se=document.getElementById('subEmail'); if(se) se.onclick=submitEmail;
+  if(S.email) showEmailDone();
+  document.getElementById('addlb').onclick=()=>renderBoard(true);
+  document.getElementById('replay').onclick=renderMap;
+  document.getElementById('reset').onclick=()=>{ const keep=S.board; Object.assign(S,FRESH,{done:Array(N).fill(false),board:keep}); save(); boot(); };
+}
+
+/* ---------------- leaderboard ---------------- */
+function renderBoard(addMode){
+  const board=boardList().slice().sort((a,b)=>b.score-a.score);
+  function rowsHtml(){
+    return board.map((e,k)=>`<div class="lbrow ${e.you?'you':''} ${k<3?('top'+(k+1)):''}">
+      <div class="rk">${k===0?I('crown'):(k+1)}</div>
+      <div class="nm">${e.name}${e.you?' (you)':''}<div class="rankname">${rankFor(e.score)}</div></div>
+      <div class="sc">${I('star')} ${e.score}</div></div>`).join('');
+  }
+  screen.innerHTML=`
+    <div class="card">
+      <div class="row" style="margin:0 0 14px"><button class="btn ghost" id="back">${I('arrow-left')} Map</button><div class="spacer"></div><div class="chip">${I('trophy')} Leaderboard</div></div>
+      <h2>Leaderboard</h2>
+      <p class="lead">Top decoders at Eddy's AI Lab. ${addMode?'Add your initials to take your spot.':'Finish the game to add your score.'}</p>
+      <div class="lb" id="lb">${rowsHtml()}</div>
+      ${addMode?`<div class="addbox"><input id="ini" maxlength="8" placeholder="YOUR NAME"><button class="btn primary" id="submit">${I('plus')} Add ${S.score}</button></div>`:''}
+      <div class="row" style="margin-top:16px"><button class="btn ghost" id="home">Back to map</button></div>
+    </div>`;
+  icons();
+  document.getElementById('back').onclick=renderMap;
+  document.getElementById('home').onclick=renderMap;
+  if(addMode){
+    const submit=document.getElementById('submit'), ini=document.getElementById('ini');
+    submit.onclick=()=>{
+      const name=(ini.value||'YOU').toUpperCase().slice(0,8);
+      board.forEach(e=>{ delete e.you; });
+      S.board.push({name, score:S.score, you:true}); save();
+      renderBoard(false);
+    };
+  }
+}
+
+/* ---------------- boot ---------------- */
+boot();
+</script>
+</body>
+</html>
