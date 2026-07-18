@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Decoded — Learn what AI really is, by Eddy's AI Lab</title>
+  <meta name="description" content="Decoded is a free, playable crash course in AI. Eleven quick mini-games that teach a total beginner what AI is and how to use it. By Eddy's AI Lab." />
+  <meta name="theme-color" content="#0B0B0C" />
+
+  <!-- Open Graph / social -->
+  <meta property="og:title" content="Decoded — I decoded AI. Can you?" />
+  <meta property="og:description" content="A free, playable crash course in AI. Eleven quick mini-games by Eddy's AI Lab." />
+  <meta property="og:type" content="website" />
+
+  <!-- Inter font (optional). A strong system fallback is set in CSS, so the game
+       still works fully offline if this does not load. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+  <!-- Moving-code atmosphere layer (disabled under reduced motion) -->
+  <div id="bg-code" aria-hidden="true"></div>
+
+  <!-- Top bar: brand (always Ada) + HUD -->
+  <header class="topbar">
+    <div id="brandbar" class="brandbar"></div>
+    <div class="topright">
+      <div id="account" class="account"></div>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch color theme"></button>
+      <div id="hud" class="hud" hidden aria-label="Your progress"></div>
+    </div>
+  </header>
+
+  <!-- All screens render here -->
+  <main id="screen" class="screen" role="main"></main>
+
+  <footer class="sitefoot">
+    <span>Decoded, a free game by <a href="https://www.eddysailab.com" target="_blank" rel="noopener">Eddy's AI Lab</a>.</span>
+  </footer>
+
+  <!-- Load order matters: config and data first, then systems, then app. -->
+  <script src="js/config.js"></script>
+  <script src="js/data/guides.js"></script>
+  <script src="js/data/ranks.js"></script>
+  <script src="js/data/glossary.js"></script>
+  <script src="js/data/levels.js"></script>
+  <script src="js/data/copy.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/mascot.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/leaderboard.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/engine.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      DECODED.app.init();
+    });
+  </script>
+</body>
+</html>
