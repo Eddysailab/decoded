@@ -1,0 +1,3871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Decoded, by Eddy&#39;s AI Lab</title>
+<meta name="description" content="Decoded is a free, playable crash course in AI. Eleven quick mini-games that teach a total beginner what AI is and how to use it. By Eddy&#39;s AI Lab." />
+<meta name="theme-color" content="#0B0B0C" />
+<!-- Standalone single-file build. Generated from the source in css/ and js/.
+     Edit the source files, not this one. Rebuild with: npm run build (see README). -->
+<style>
+/* ============================================================================
+   DECODED - STYLES
+   ----------------------------------------------------------------------------
+   Brand tokens live at the top in :root. Change those to rebrand the whole game.
+   ============================================================================ */
+
+:root {
+  /* Brand colors */
+  --bg: #0B0B0C;
+  --panel: #141417;
+  --panel-2: #1C1C21;
+  --border: #2A2A31;
+  --green: #C6FF3A;
+  --green-dim: #8FBE1F;
+  --cyan: #3AE8FF;
+  --text: #F5F7F2;
+  --muted: #9A9AA3;
+  --red: #FF5C5C;
+  --amber: #FFB13A;
+
+  --radius: 16px;
+  --radius-sm: 10px;
+  --maxw: 720px;
+  --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+a { color: var(--green); }
+
+/* ------------------------- Moving-code background ------------------------- */
+#bg-code {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.bg-line {
+  position: absolute;
+  bottom: -40px;
+  color: var(--green);
+  opacity: 0.05;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  white-space: nowrap;
+  animation-name: drift;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+@keyframes drift {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-115vh); }
+}
+
+/* -------------------------------- Layout --------------------------------- */
+.topbar {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  width: 100%;
+}
+.brandbar { display: flex; align-items: center; }
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text);
+}
+.brand-mascot { display: inline-flex; width: 40px; }
+.brand-word { font-weight: 800; letter-spacing: 1px; font-size: 20px; }
+
+.hud { display: flex; align-items: center; gap: 8px; }
+.hud-item {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 5px 11px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.hud-item.flame { color: var(--amber); border-color: var(--amber); }
+
+.screen {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 8px 16px 40px;
+}
+
+.sitefoot {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 20px 16px 28px;
+}
+
+/* ------------------------------- Buttons --------------------------------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-2);
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 16px;
+  padding: 13px 20px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: transform .12s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:active { transform: translateY(0); }
+.btn.primary {
+  background: var(--green);
+  color: #10130A;
+  border-color: var(--green);
+  box-shadow: 0 6px 20px rgba(198, 255, 58, 0.18);
+}
+.btn.primary:hover { background: #d4ff5e; }
+.btn.ghost { background: transparent; }
+.btn.danger { background: transparent; color: var(--red); border-color: var(--red); }
+.btn.big { font-size: 18px; padding: 15px 34px; margin-top: 8px; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 4px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link-btn:hover { color: var(--text); }
+
+/* Focus visibility for keyboard users */
+:focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* -------------------------------- Cards ---------------------------------- */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin: 14px 0;
+}
+
+.screen-center {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 8px 8px;
+}
+.screen-pad { padding-top: 8px; }
+.screen-title { font-size: 26px; margin: 8px 0 4px; }
+.screen-sub { color: var(--muted); margin: 0 0 18px; }
+.lead { color: var(--muted); font-size: 17px; max-width: 30em; margin: 12px auto 8px; line-height: 1.5; }
+
+/* ------------------------------- Mascot ---------------------------------- */
+.dc-mascot { display: block; }
+.hero-mascot { margin: 6px auto 2px; }
+.wordmark { font-size: 52px; font-weight: 800; letter-spacing: 3px; margin: 6px 0 0; }
+.wordmark-sub { color: var(--muted); font-weight: 700; letter-spacing: 2px; font-size: 13px; }
+
+/* Glitch effect on the DECODED wordmark (landing screen). Two color-split
+   copies flicker and shift over the base text, like a broken signal. */
+.wordmark.glitch { position: relative; animation: glitch-jitter 3.2s steps(2) infinite; }
+.wordmark.glitch::before,
+.wordmark.glitch::after {
+  content: attr(data-text);
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  text-align: center;
+  letter-spacing: inherit;
+  overflow: hidden;
+  pointer-events: none;
+}
+.wordmark.glitch::before {
+  color: var(--cyan);
+  text-shadow: -2px 0 var(--cyan);
+  animation: glitch-slice-1 2.6s infinite linear alternate-reverse;
+}
+.wordmark.glitch::after {
+  color: #FF4D6D;
+  text-shadow: 2px 0 #FF4D6D;
+  animation: glitch-slice-2 3.4s infinite linear alternate-reverse;
+}
+@keyframes glitch-jitter {
+  0%, 92%, 100% { transform: translate(0, 0); }
+  93% { transform: translate(-2px, 1px); }
+  95% { transform: translate(2px, -1px); }
+  97% { transform: translate(-1px, 0); }
+}
+@keyframes glitch-slice-1 {
+  0%   { clip-path: inset(0 0 82% 0); transform: translate(-3px, -1px); }
+  15%  { clip-path: inset(38% 0 40% 0); transform: translate(3px, 1px); }
+  30%  { clip-path: inset(70% 0 8% 0);  transform: translate(-2px, 0); }
+  45%  { clip-path: inset(12% 0 68% 0); transform: translate(2px, -1px); }
+  60%  { clip-path: inset(52% 0 30% 0); transform: translate(-3px, 1px); }
+  75%  { clip-path: inset(24% 0 60% 0); transform: translate(1px, 0); }
+  100% { clip-path: inset(80% 0 4% 0);  transform: translate(-2px, 1px); }
+}
+@keyframes glitch-slice-2 {
+  0%   { clip-path: inset(66% 0 12% 0); transform: translate(3px, 1px); }
+  15%  { clip-path: inset(18% 0 62% 0); transform: translate(-3px, -1px); }
+  30%  { clip-path: inset(46% 0 34% 0); transform: translate(2px, 1px); }
+  45%  { clip-path: inset(80% 0 6% 0);  transform: translate(-2px, 0); }
+  60%  { clip-path: inset(30% 0 54% 0); transform: translate(3px, -1px); }
+  75%  { clip-path: inset(60% 0 22% 0); transform: translate(-1px, 1px); }
+  100% { clip-path: inset(8% 0 78% 0);  transform: translate(2px, 0); }
+}
+
+/* Animations: bob (head), look (eyes shift), blink (eyes squash) */
+.dc-bob { animation: bob 3.4s ease-in-out infinite; transform-box: view-box; transform-origin: center; }
+.dc-eyes { animation: look 5s ease-in-out infinite; transform-box: view-box; transform-origin: center; }
+.dc-eye { animation: blink 4.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+@keyframes look {
+  0%, 18% { transform: translate(0, 0); }
+  25%, 38% { transform: translate(5px, -2px); }
+  45%, 58% { transform: translate(-5px, 1px); }
+  65%, 78% { transform: translate(0, 3px); }
+  85%, 100% { transform: translate(0, 0); }
+}
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.12); }
+}
+
+/* ---------------------------- Guide picker ------------------------------- */
+.guide-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.guide-card {
+  background: var(--panel);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 14px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--text);
+  font-family: inherit;
+  transition: border-color .15s ease, transform .12s ease, background .15s ease;
+}
+.guide-card:hover { transform: translateY(-2px); }
+.guide-card.selected { border-color: var(--green); background: var(--panel-2); }
+.guide-mascot { min-height: 140px; display: flex; align-items: center; justify-content: center; }
+.guide-name { font-size: 22px; font-weight: 800; margin-top: 6px; }
+.guide-pers { color: var(--muted); font-size: 14px; margin-top: 4px; line-height: 1.4; }
+
+/* ------------------------------ Home map --------------------------------- */
+.home-hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin: 8px 0 14px;
+}
+.hero-mascot.small { flex: 0 0 auto; width: 100px; }
+.speech {
+  position: relative;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gc, var(--green));
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.xp-panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+.xp-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.rank-pill {
+  background: var(--panel-2);
+  border: 1px solid var(--gc, var(--green));
+  color: var(--gc, var(--green));
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: 0.5px;
+}
+.xp-score { color: var(--muted); font-size: 14px; font-weight: 700; }
+
+.meter-track { background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; height: 14px; overflow: hidden; }
+.meter-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--green-dim), var(--green));
+  border-radius: 999px;
+  transition: width .6s cubic-bezier(.2,.8,.2,1);
+}
+
+.home-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0; }
+
+.chapter-title { font-size: 14px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin: 20px 0 8px; }
+.level-list { display: flex; flex-direction: column; gap: 10px; }
+.level-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .15s ease, background .15s ease;
+}
+.level-row.open:hover { transform: translateY(-2px); border-color: var(--green); }
+.level-row.locked { opacity: 0.5; cursor: not-allowed; }
+.level-row.done { border-color: var(--green-dim); }
+.lv-num {
+  flex: 0 0 auto;
+  width: 34px; height: 34px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-weight: 800;
+}
+.level-row.done .lv-num { background: var(--green); color: #10130A; border-color: var(--green); }
+.lv-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.lv-title { font-weight: 700; font-size: 16px; }
+.lv-tag { color: var(--muted); font-size: 13px; }
+.lv-state { flex: 0 0 auto; font-size: 13px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.level-row.open .lv-state { color: var(--green); }
+.level-row.done .lv-state { color: var(--green-dim); }
+
+/* ------------------------------- Level ----------------------------------- */
+.level-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.level-counter { color: var(--muted); font-size: 14px; font-weight: 700; }
+.level-title { font-size: 24px; margin: 4px 0 12px; }
+.guide-line { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.gl-mascot { flex: 0 0 auto; width: 44px; }
+.gl-text {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gc, var(--green));
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.howto {
+  background: rgba(198, 255, 58, 0.10);
+  border: 1px solid var(--green-dim);
+  color: var(--text);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 14px;
+}
+
+/* ------------------------------- Quiz ------------------------------------ */
+.quiz-count { color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 12px; }
+.quiz-prompt { font-size: 20px; font-weight: 700; line-height: 1.4; margin-bottom: 16px; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.big-icon { line-height: 0; color: var(--green); display: inline-flex; }
+.prompt-label { font-size: 20px; }
+.statement { font-size: 20px; font-weight: 700; line-height: 1.4; text-align: center; }
+
+.options { display: grid; gap: 10px; }
+.options.word-options { grid-template-columns: 1fr 1fr; }
+.option-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .1s ease, border-color .15s ease, background .15s ease;
+}
+.option-btn:hover:not(:disabled) { border-color: var(--green); transform: translateY(-1px); }
+.option-btn:disabled { cursor: default; }
+.option-btn.correct { border-color: var(--green); background: rgba(198,255,58,0.14); }
+.option-btn.wrong { border-color: var(--red); background: rgba(255,92,92,0.14); }
+.word-btn { justify-content: center; font-size: 18px; }
+.opt-icon { display: inline-flex; color: var(--green); flex: 0 0 auto; }
+.opt-icon .ic { width: 22px; height: 22px; }
+
+.feedback { margin-top: 14px; }
+.feedback.show { animation: popIn .25s ease; }
+.fb-head { font-weight: 800; font-size: 16px; margin-bottom: 4px; }
+.feedback.good .fb-head { color: var(--green); }
+.feedback.bad .fb-head { color: var(--red); }
+.fb-why { color: var(--muted); font-size: 15px; line-height: 1.45; }
+.next-btn { margin-top: 14px; width: 100%; }
+
+/* Probability bars (level 3) */
+.prob-bars { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.prob-row { display: grid; grid-template-columns: 84px 1fr 46px; align-items: center; gap: 8px; font-size: 14px; }
+.prob-word { font-weight: 700; }
+.prob-row.top .prob-word { color: var(--green); }
+.prob-track { background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; height: 14px; overflow: hidden; }
+.prob-fill { display: block; height: 100%; background: var(--green-dim); border-radius: 999px; transition: width .6s ease; }
+.prob-row.top .prob-fill { background: var(--green); }
+.prob-pct { text-align: right; color: var(--muted); font-weight: 700; }
+.blank { color: var(--green); border-bottom: 2px dashed var(--green); padding: 0 6px; }
+
+/* Train model test grid (level 2) */
+.test-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 6px 0; }
+.test-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; background: var(--panel-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; }
+.test-cell.good { border-color: var(--green); }
+.test-cell.bad { border-color: var(--red); }
+.test-pred { font-size: 13px; color: var(--muted); text-align: center; }
+.test-mark { font-size: 20px; }
+
+/* Prompt upgrade (level 5) */
+.prompt-preview {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 60px;
+  margin-bottom: 14px;
+}
+.pp-base { display: block; color: var(--text); }
+.pp-add { display: block; color: var(--green); animation: popIn .2s ease; }
+.meter-wrap { margin-bottom: 14px; }
+.meter-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 10px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.chip:hover { transform: translateY(-1px); border-color: var(--green); }
+.chip.on { background: rgba(198,255,58,0.16); border-color: var(--green); color: var(--text); }
+
+/* Agent tools (level 6) */
+.goal-box { background: var(--panel-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px; font-size: 17px; font-weight: 600; margin-bottom: 14px; }
+.tool-hint { color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+.tool-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.tool-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, transform .1s ease;
+}
+.tool-btn:hover { transform: translateY(-1px); }
+.tool-btn.on { border-color: var(--green); background: rgba(198,255,58,0.16); }
+.tool-icon { display: inline-flex; color: var(--green); }
+.run-btn { width: 100%; }
+.agent-log { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
+.log-line { font-family: "SFMono-Regular", Consolas, monospace; font-size: 14px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--panel-2); }
+.log-line.ok { border-color: var(--green-dim); }
+.log-line.stall { border-color: var(--red); color: var(--red); }
+
+/* Order steps (level 7) */
+.order-hint { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+.order-slots { list-style: none; margin: 0 0 14px; padding: 0; display: flex; flex-direction: column; gap: 8px; counter-reset: none; }
+.order-slot {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--panel-2);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  min-height: 52px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.order-slot.filled { border-style: solid; }
+.order-slot.good { border-color: var(--green); background: rgba(198,255,58,0.12); }
+.order-slot.bad { border-color: var(--red); background: rgba(255,92,92,0.12); }
+.slot-num { flex: 0 0 auto; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; background: var(--panel); border: 1px solid var(--border); border-radius: 999px; font-weight: 800; font-size: 13px; }
+.slot-empty { color: var(--muted); font-weight: 500; }
+.order-pool { display: flex; flex-direction: column; gap: 8px; }
+.step-chip {
+  display: flex; align-items: center; gap: 10px;
+  text-align: left;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .15s ease, transform .1s ease;
+}
+.step-chip:hover { border-color: var(--green); transform: translateY(-1px); }
+.step-icon { display: inline-flex; color: var(--green); flex: 0 0 auto; }
+.order-actions { margin-top: 12px; }
+
+/* ------------------------------- Reveal ---------------------------------- */
+.reveal-badge {
+  display: inline-block;
+  background: var(--green);
+  color: #10130A;
+  font-weight: 800;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 14px;
+  margin: 6px 0;
+}
+.reveal-badge.fail { background: var(--red); color: #1A0A0A; }
+
+/* Failed a level */
+.fail-card { border-color: var(--red); background: linear-gradient(180deg, rgba(255,92,92,0.07), var(--panel)); }
+.fail-title { display: flex; align-items: center; gap: 8px; font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+.fail-title .ui-ic { color: var(--red); }
+.fail-body { color: var(--text); line-height: 1.55; font-size: 16px; margin: 0; }
+.reveal-card .reveal-title { font-size: 18px; font-weight: 800; margin-bottom: 8px; }
+.reveal-body { color: var(--text); line-height: 1.55; font-size: 16px; margin: 0; }
+.concept-card { border-color: var(--green); background: linear-gradient(180deg, rgba(198,255,58,0.06), var(--panel)); }
+.concept-tag { color: var(--green); font-weight: 800; font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+.concept-term { font-size: 20px; font-weight: 800; margin-bottom: 6px; }
+.concept-def { color: var(--muted); line-height: 1.5; font-size: 15px; }
+.reveal-nav { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.reveal-nav .btn { flex: 1; min-width: 140px; }
+
+/* CTA (last level + certificate) */
+.cta-card { border-color: var(--green); text-align: center; }
+.cta-text { font-size: 18px; font-weight: 700; line-height: 1.5; margin: 4px 0 14px; }
+
+/* ----------------------------- Certificate ------------------------------- */
+.cert-card { text-align: center; border-color: var(--gc, var(--green)); background: linear-gradient(180deg, rgba(255,255,255,0.03), var(--panel)); }
+.cert-mascot { margin-bottom: 4px; }
+.cert-title { font-size: 30px; margin: 6px 0 16px; }
+.cert-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cert-stat { background: var(--panel-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 6px; }
+.cs-num { display: block; font-size: 22px; font-weight: 800; color: var(--gc, var(--green)); }
+.cs-lab { display: block; color: var(--muted); font-size: 12px; margin-top: 4px; }
+
+.concept-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+.concept-pill { background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; }
+
+.concept-deck { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.mini-concept { margin: 0; }
+.mini-concept .concept-term { font-size: 17px; }
+
+.block-title { font-size: 18px; margin: 0 0 6px; }
+.block-sub { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
+
+/* Share */
+.share-preview { width: 100%; max-width: 340px; aspect-ratio: 1/1; display: block; margin: 6px auto 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); }
+.share-actions { display: flex; gap: 10px; }
+.share-actions .btn { flex: 1; }
+
+/* Email */
+.email-form { display: flex; gap: 10px; flex-wrap: wrap; }
+.email-input, .lb-initials-input {
+  flex: 1; min-width: 180px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 13px 14px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+}
+.email-input:focus, .lb-initials-input:focus { border-color: var(--green); outline: none; }
+.email-msg { margin-top: 10px; font-size: 14px; font-weight: 600; }
+.email-msg.good { color: var(--green); }
+.email-msg.bad { color: var(--red); }
+
+/* ---------------------------- Leaderboard -------------------------------- */
+.lb-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.lb-row {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+.lb-row.top { border-color: var(--green-dim); }
+.lb-row.top-1 { border-color: var(--green); background: rgba(198,255,58,0.08); }
+.lb-row.you { border-color: var(--cyan); }
+.lb-rank { font-size: 18px; font-weight: 800; text-align: center; }
+.lb-initials { font-weight: 700; }
+.lb-score { font-weight: 800; color: var(--green); }
+.lb-add { margin-top: 6px; }
+.lb-form { display: flex; gap: 10px; margin-top: 8px; }
+.lb-initials-input { text-transform: uppercase; letter-spacing: 3px; text-align: center; max-width: 120px; flex: 0 0 auto; }
+
+/* ------------------------------ Animations ------------------------------- */
+.fade-up { animation: fadeUp .35s ease both; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+.pop-in { animation: popIn .3s ease both; }
+@keyframes popIn { from { opacity: 0; transform: scale(0.94); } to { opacity: 1; transform: scale(1); } }
+
+/* Floating points burst */
+.points-burst {
+  position: fixed;
+  z-index: 50;
+  transform: translate(-50%, -50%);
+  color: var(--green);
+  font-weight: 800;
+  font-size: 26px;
+  pointer-events: none;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  animation: floatUp 1s ease-out forwards;
+}
+@keyframes floatUp {
+  0% { opacity: 0; transform: translate(-50%, -40%) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, -70%) scale(1.1); }
+  100% { opacity: 0; transform: translate(-50%, -140%) scale(1); }
+}
+
+/* Confetti */
+.confetti-layer { position: fixed; inset: 0; z-index: 45; pointer-events: none; overflow: hidden; }
+.confetti-bit { position: absolute; top: -20px; border-radius: 2px; animation-name: fall; animation-timing-function: linear; animation-iteration-count: 1; }
+@keyframes fall {
+  to { transform: translateY(110vh) rotate(540deg); opacity: 0.9; }
+}
+
+/* -------------------------- Responsive tweaks ---------------------------- */
+@media (max-width: 480px) {
+  .wordmark { font-size: 42px; }
+  .guide-cards { gap: 10px; }
+  .cert-stats { grid-template-columns: 1fr; }
+  .cs-num { font-size: 20px; }
+  .reveal-nav .btn { min-width: 120px; }
+}
+
+/* ------------------------------- Icons ----------------------------------- */
+.ic { display: inline-block; vertical-align: -0.15em; }
+/* Leading / trailing icon inside a button or label */
+.ui-ic { display: inline-flex; align-items: center; }
+.ui-ic .ic { width: 1.1em; height: 1.1em; }
+.hud-item, .rank-pill, .lv-state, .concept-tag, .concept-term, .cs-lab,
+.block-title, .assignment-tag, .reveal-title, .goal-box {
+  display: inline-flex; align-items: center; gap: 7px;
+}
+.concept-term, .reveal-title, .block-title { display: flex; }
+.cert-stat .cs-lab { justify-content: center; }
+.lb-rank { display: inline-flex; align-items: center; justify-content: center; }
+.lb-rank .ic { width: 20px; height: 20px; }
+.btn .ui-ic .ic, .btn-ic .ic { width: 1.15em; height: 1.15em; }
+.btn-ic { display: inline-flex; }
+.chip-icon { display: inline-flex; color: var(--green); }
+.chip-icon .ic { width: 18px; height: 18px; }
+.goal-icon { display: inline-flex; color: var(--green); }
+.howto-ic { display: inline-flex; color: var(--green-dim); vertical-align: middle; margin-right: 4px; }
+.howto-ic .ic { width: 18px; height: 18px; }
+.fb-mark { display: inline-flex; vertical-align: -0.2em; }
+.fb-mark .ic { width: 20px; height: 20px; }
+.feedback.good .fb-mark { color: var(--green); }
+.feedback.bad .fb-mark { color: var(--red); }
+.log-mark { display: inline-flex; vertical-align: -0.2em; margin-right: 6px; }
+.log-line.ok .log-mark { color: var(--green); }
+.log-line.stall .log-mark { color: var(--red); }
+.you-pick { color: var(--green); font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; margin-left: 4px; }
+.rank-pill .ic { width: 16px; height: 16px; }
+
+/* Concept/content icon accents */
+.big-icon .ic { width: auto; height: auto; }
+.concept-card .concept-term { color: var(--text); }
+.concept-card .concept-term .ic { color: var(--green); }
+.concept-tag .ic { color: var(--green); }
+
+/* ---------------------------- Assignment card ---------------------------- */
+.assignment-card { border-color: var(--amber); background: linear-gradient(180deg, rgba(255,177,58,0.06), var(--panel)); }
+.assignment-tag { color: var(--amber); font-weight: 800; font-size: 13px; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 8px; }
+.assignment-tag .ic { color: var(--amber); }
+.assignment-body { color: var(--text); line-height: 1.55; font-size: 16px; margin: 0; }
+
+/* ------------------------------- Sign in --------------------------------- */
+.auth-btn-wrap { display: flex; justify-content: center; min-height: 48px; margin: 8px 0 6px; }
+.auth-loading { color: var(--muted); font-size: 14px; padding: 12px 0; }
+.auth-note { color: var(--muted); font-size: 13px; max-width: 30em; margin: 6px auto 0; line-height: 1.5; }
+.auth-error {
+  color: var(--amber);
+  background: rgba(255, 177, 58, 0.08);
+  border: 1px solid var(--amber);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-size: 14px;
+  max-width: 30em;
+  line-height: 1.5;
+}
+
+/* ---------------------------- Account chip ------------------------------- */
+.account { display: flex; align-items: center; }
+.account[hidden] { display: none; }
+.account-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 12px 4px 4px;
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color .15s ease, transform .12s ease;
+}
+.account-chip:hover { border-color: var(--green); transform: translateY(-1px); }
+.account-avatar {
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+.account-initial {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--grad, var(--green));
+  color: #0B0B0C;
+  font-weight: 800;
+}
+.account-name { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 520px) {
+  .account-name { display: none; }
+  .account-chip { padding: 4px; }
+}
+
+/* ----------------------------- Theme toggle ------------------------------ */
+.topright { display: flex; align-items: center; gap: 10px; }
+.theme-toggle {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .15s ease, transform .12s ease;
+}
+.theme-toggle:hover { transform: translateY(-1px); border-color: var(--green); }
+.theme-toggle .ic { width: 20px; height: 20px; }
+
+/* ------------------------------ Light theme ------------------------------ */
+:root[data-theme="light"] {
+  --bg: #F4F6EF;
+  --panel: #FFFFFF;
+  --panel-2: #F1F3EC;
+  --border: #DBDED3;
+  --text: #14160F;
+  --muted: #5C6053;
+}
+/* Neon green is kept for fills and buttons; green TEXT and icons get a deeper
+   green so they stay readable on the light background. */
+:root[data-theme="light"] .lv-state,
+:root[data-theme="light"] .level-row.open .lv-state,
+:root[data-theme="light"] .concept-tag,
+:root[data-theme="light"] .concept-tag .ic,
+:root[data-theme="light"] .concept-card .concept-term .ic,
+:root[data-theme="light"] .pp-add,
+:root[data-theme="light"] .prob-row.top .prob-word,
+:root[data-theme="light"] .lb-score,
+:root[data-theme="light"] .email-msg.good,
+:root[data-theme="light"] .feedback.good .fb-head,
+:root[data-theme="light"] .feedback.good .fb-mark,
+:root[data-theme="light"] .log-line.ok .log-mark,
+:root[data-theme="light"] .you-pick,
+:root[data-theme="light"] .big-icon,
+:root[data-theme="light"] .opt-icon,
+:root[data-theme="light"] .tool-icon,
+:root[data-theme="light"] .step-icon,
+:root[data-theme="light"] .goal-icon,
+:root[data-theme="light"] .chip-icon,
+:root[data-theme="light"] .hud-item .ic {
+  color: #4d7a00;
+}
+:root[data-theme="light"] .howto { color: var(--text); }
+:root[data-theme="light"] .hud-item.flame { color: #b06f00; border-color: var(--amber); }
+:root[data-theme="light"] .bg-line { opacity: 0.06; color: #4d7a00; }
+:root[data-theme="light"] .btn.primary { box-shadow: 0 6px 18px rgba(143, 190, 31, 0.28); }
+:root[data-theme="light"] .points-burst { color: #4d7a00; }
+
+/* ============================================================================
+   YOUTHFUL REFRESH
+   ----------------------------------------------------------------------------
+   A more energetic, playful layer on top of the base system: rounder shapes,
+   a green-to-cyan signature gradient, soft glows, and bouncier motion.
+   Defined last so it wins the cascade for shared selectors.
+   ============================================================================ */
+:root {
+  --radius: 22px;
+  --radius-sm: 15px;
+  --grad: linear-gradient(120deg, var(--green) 0%, var(--cyan) 100%);
+  --grad-soft: linear-gradient(120deg, #D6FF63 0%, #B6F52E 100%);
+  --glow-green: 0 10px 34px rgba(198, 255, 58, 0.30);
+  --glow-cyan: 0 10px 34px rgba(58, 232, 255, 0.28);
+  --bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Buttons: chunkier, springier, glowing primaries */
+.btn {
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  padding: 14px 22px;
+  transition: transform 0.18s var(--bounce), background 0.15s ease, box-shadow 0.2s ease, border-color 0.15s ease;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn:active { transform: translateY(0) scale(0.96); }
+.btn.big { padding: 16px 36px; border-radius: 18px; }
+.btn.primary {
+  background: var(--grad-soft);
+  color: #10130A;
+  border: 1px solid transparent;
+  box-shadow: var(--glow-green);
+}
+.btn.primary:hover {
+  background: linear-gradient(120deg, #E2FF82 0%, #C6FF3A 100%);
+  box-shadow: 0 12px 40px rgba(198, 255, 58, 0.42);
+}
+
+/* Cards and panels: softer, friendlier corners */
+.home-hero, .xp-panel { border-radius: var(--radius); }
+
+/* Hero mascot gets an ambient glow */
+.hero-mascot { filter: drop-shadow(0 12px 34px rgba(198, 255, 58, 0.28)); }
+.wordmark { font-size: 60px; }
+
+/* HUD + toggle: rounder pills */
+.hud-item { border-radius: 999px; font-weight: 800; border-width: 1.5px; }
+.theme-toggle { border-radius: 13px; }
+.theme-toggle:hover { box-shadow: var(--glow-green); }
+
+/* XP / progress: gradient fill with a moving shimmer */
+.meter-track { height: 16px; }
+.meter-fill { background: var(--grad); position: relative; overflow: hidden; }
+.meter-fill::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 2.6s ease-in-out infinite;
+}
+@keyframes shimmer { 0% { transform: translateX(-100%); } 60%, 100% { transform: translateX(100%); } }
+.rank-pill { border-width: 2px; font-weight: 800; }
+
+/* Level rows: lift and glow, gradient badge when done */
+.level-row { border-radius: 18px; }
+.level-row.open:hover { transform: translateY(-3px); border-color: var(--green); box-shadow: var(--glow-green); }
+.lv-num { border-radius: 12px; font-weight: 900; }
+.level-row.done .lv-num { background: var(--grad); color: #0B0B0C; border-color: transparent; }
+
+/* Options, chips, tools, steps: bouncy press */
+.option-btn, .chip, .tool-btn, .step-chip, .word-btn { border-radius: 15px; }
+.option-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: var(--glow-green); }
+.chip:hover, .tool-btn:hover, .step-chip:hover { transform: translateY(-2px); }
+.option-btn:active:not(:disabled), .chip:active, .tool-btn:active, .step-chip:active { transform: scale(0.97); }
+
+/* Guide picker: playful hover */
+.guide-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: var(--glow-green); }
+.guide-card.selected { box-shadow: var(--glow-green); }
+
+/* Badges: the win badge goes full gradient (the fail badge stays red) */
+.reveal-badge { background: var(--grad); }
+
+/* How-to callout: a touch brighter */
+.howto { border-radius: 16px; }
+
+/* Feedback and points get a springier entrance */
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.9); }
+  60% { opacity: 1; transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+.points-burst { font-size: 30px; }
+
+/* Concept + assignment cards: rounder */
+.concept-pill { border-radius: 999px; font-weight: 700; }
+
+/* Certificate stat tiles pop a bit more */
+.cert-stat { border-radius: 16px; }
+.cs-num { letter-spacing: 0.3px; }
+
+/* Leaderboard rows */
+.lb-row { border-radius: 16px; }
+.lb-row.top-1 { box-shadow: var(--glow-green); }
+
+/* --------------------------- Reduced motion ------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  .dc-bob, .dc-eyes, .dc-eye { animation: none !important; }
+  .bg-line { display: none; }
+  .wordmark.glitch { animation: none !important; }
+  .wordmark.glitch::before, .wordmark.glitch::after { display: none; }
+  .fade-up, .pop-in, .points-burst, .confetti-bit { animation: none !important; }
+  .points-burst { opacity: 1; }
+  .btn:hover, .option-btn:hover, .chip:hover, .tool-btn:hover, .step-chip:hover, .level-row.open:hover, .guide-card:hover { transform: none; }
+  .meter-fill, .prob-fill { transition: none; }
+  .meter-fill::after { display: none; }
+}
+</style>
+</head>
+<body>
+<div id="bg-code" aria-hidden="true"></div>
+<header class="topbar">
+  <div id="brandbar" class="brandbar"></div>
+  <div class="topright">
+    <div id="account" class="account"></div>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch color theme"></button>
+    <div id="hud" class="hud" hidden aria-label="Your progress"></div>
+  </div>
+</header>
+<main id="screen" class="screen" role="main"></main>
+<footer class="sitefoot"><span>Decoded, a free game by <a href="https://www.eddysailab.com" target="_blank" rel="noopener">Eddy&#39;s AI Lab</a>.</span></footer>
+<script>
+/* ============================================================================
+   DECODED - CONFIG
+   ----------------------------------------------------------------------------
+   This is the ONE file a non-technical owner will edit most often for setup.
+   Everything below is plain text you can safely change. Keep the quotes.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+DECODED.config = {
+
+  /* --------------------------------------------------------------------------
+     EMAIL CAPTURE ENDPOINT
+     --------------------------------------------------------------------------
+     Leave this as "" (empty) and emails are only saved in the player's browser.
+     To collect emails for real, paste a form endpoint URL between the quotes.
+
+     Where to get one (all free tiers work):
+       - Formspree:  make a form, copy the URL that looks like
+                     https://formspree.io/f/abcdwxyz
+       - ConvertKit / Mailchimp: use their "custom form action" / API URL.
+
+     When set, Decoded sends { email, score, rank } to this URL on signup.
+  -------------------------------------------------------------------------- */
+  FORM_ENDPOINT: "",
+
+  /* --------------------------------------------------------------------------
+     YOUR SITE URL (used on the CTA button and the shareable image card)
+  -------------------------------------------------------------------------- */
+  SITE_URL: "https://www.eddysailab.com",
+  SITE_URL_LABEL: "www.eddysailab.com",
+
+  /* --------------------------------------------------------------------------
+     GOOGLE SIGN-IN (require players to sign in with Google before playing)
+     --------------------------------------------------------------------------
+     Leave GOOGLE_CLIENT_ID as "" and the game plays with no sign-in (the
+     default). Paste your Google OAuth Client ID here and players must sign in
+     with Google to play.
+
+     How to get a Client ID (free, about 5 minutes):
+       1. Go to https://console.cloud.google.com and create a project.
+       2. APIs and Services  ->  Credentials  ->  Create credentials
+          ->  OAuth client ID  ->  Web application.
+       3. Under "Authorized JavaScript origins" add the exact web address where
+          this game will live, for example https://www.eddysailab.com
+          (add http://localhost:3210 too if you want to test locally).
+       4. Copy the Client ID (it ends in .apps.googleusercontent.com) and paste
+          it between the quotes below.
+
+     Notes:
+       - This requires an internet connection and does not work offline.
+       - Sign-in identifies the player in their browser. It is not a secured
+          server account yet. See the "future developer" notes in the README for
+          how to add real, server-verified accounts later.
+  -------------------------------------------------------------------------- */
+  GOOGLE_CLIENT_ID: "",
+  REQUIRE_SIGN_IN: true, // when a Client ID is set: true = must sign in to play
+
+  /* --------------------------------------------------------------------------
+     BRAND (white-label ready: change these to rebrand the whole game later)
+  -------------------------------------------------------------------------- */
+  BRAND: {
+    productName: "DECODED",
+    tagline: "BY EDDY'S AI LAB",
+    maker: "Eddy's AI Lab"
+  },
+
+  /* --------------------------------------------------------------------------
+     FINAL CALL TO ACTION (shown only on the last level and the certificate)
+     Copy is exact and intentional. Change with care.
+  -------------------------------------------------------------------------- */
+  CTA: {
+    text: "Looking to gain a deeper understanding of AI, and build with it too? Let's get to it.",
+    buttonLabel: "Start here",
+    href: "https://www.eddysailab.com"
+  },
+
+  /* --------------------------------------------------------------------------
+     AFFILIATE / RECOMMENDED TOOLS
+     --------------------------------------------------------------------------
+     Optional. These can be surfaced on the build-related levels later
+     (agent, vibe coding, prompt). Add links here; the app reads them by level id.
+     Leave the arrays empty to show nothing.
+  -------------------------------------------------------------------------- */
+  AFFILIATE_TOOLS: {
+    prompt: [],   // level 5
+    agent: [],    // level 6
+    vibe: []      // level 7
+  },
+
+  /* --------------------------------------------------------------------------
+     STORAGE KEY PREFIX (bump this to reset ALL saved data for every player)
+  -------------------------------------------------------------------------- */
+  STORAGE_PREFIX: "decoded.v1."
+};
+</script>
+<script>
+/* ============================================================================
+   DECODED - GUIDES (the two mascot characters)
+   ----------------------------------------------------------------------------
+   Both are the same robot head. Ada is the official logo (green).
+   Leo is the cyan variant. You can edit names and personality lines here.
+   The actual drawing lives in js/mascot.js.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+DECODED.guides = {
+  ada: {
+    id: "ada",
+    name: "Ada",
+    color: "#C6FF3A",
+    dim: "#8FBE1F",
+    personality: "Warm and encouraging. Cheers you on the whole way.",
+    intro: "Hi, I'm Ada. We'll figure out AI together, one tap at a time."
+  },
+  leo: {
+    id: "leo",
+    name: "Leo",
+    color: "#3AE8FF",
+    dim: "#2AA9BD",
+    personality: "Cool and to the point. No fluff, just the good stuff.",
+    intro: "Leo here. I keep it short. Tap, learn, move on."
+  }
+};
+</script>
+<script>
+/* ============================================================================
+   DECODED - RANKS and XP TARGET
+   ----------------------------------------------------------------------------
+   Ranks unlock by total score. "min" is the score needed to reach each rank.
+   XP_TARGET fills the knowledge bar on the home screen.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+DECODED.ranks = [
+  { name: "CURIOUS",      min: 0,   icon: "leaf" },
+  { name: "AI AWARE",     min: 120, icon: "search" },
+  { name: "AI LITERATE",  min: 260, icon: "book" },
+  { name: "AI FLUENT",    min: 420, icon: "sparks" },
+  { name: "AI DECODED",   min: 560, icon: "brain" }
+];
+
+DECODED.XP_TARGET = 660;
+
+/* Returns the rank object for a given score. */
+DECODED.rankForScore = function (score) {
+  var ranks = DECODED.ranks;
+  var current = ranks[0];
+  for (var i = 0; i < ranks.length; i++) {
+    if (score >= ranks[i].min) current = ranks[i];
+  }
+  return current;
+};
+</script>
+<script>
+/* ============================================================================
+   DECODED - GLOSSARY (the 11 concept cards, in level order)
+   ----------------------------------------------------------------------------
+   Each card unlocks at the end of its level and is collected on the certificate.
+   Keep definitions plain-English, one to two sentences. No dashes in text.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+DECODED.glossary = [
+  {
+    id: "machine-learning",
+    icon: "brain",
+    term: "Machine Learning",
+    definition: "Software that learns patterns from examples instead of following rules a human wrote by hand. Show it enough examples and it figures out the rule itself."
+  },
+  {
+    id: "training-data",
+    icon: "list",
+    term: "Training Data",
+    definition: "The labeled examples a model learns from. If the examples are messy or wrong, the model learns the wrong thing. Garbage in, garbage out."
+  },
+  {
+    id: "large-language-model",
+    icon: "chat-bubble",
+    term: "Large Language Model",
+    definition: "A system trained on huge amounts of text that works by predicting the next most likely word, over and over. That simple trick is what powers chatbots."
+  },
+  {
+    id: "hallucination",
+    icon: "cloud",
+    term: "Hallucination",
+    definition: "When AI states something false with total confidence. Confident does not mean correct, so verify anything that actually matters."
+  },
+  {
+    id: "prompt-engineering",
+    icon: "edit-pencil",
+    term: "Prompt Engineering",
+    definition: "Writing clear instructions that get you a better answer. Add a role, specifics, a format, and the audience, and the output jumps in quality."
+  },
+  {
+    id: "ai-agent",
+    icon: "sparks",
+    term: "AI Agent",
+    definition: "An AI given tools and a goal, so it can take steps and get real tasks done rather than just chatting. The tools you give it decide what it can actually do."
+  },
+  {
+    id: "vibe-coding",
+    icon: "code",
+    term: "Vibe Coding",
+    definition: "Building software by describing what you want in plain English and letting AI write the code. Always run it and review what it built before you trust it."
+  },
+  {
+    id: "responsible-ai-use",
+    icon: "check-circle",
+    term: "Responsible AI Use",
+    definition: "Using AI in ways that are fair, honest, and safe. Great for drafts and ideas, not for passing off its work as yours or leaking private data."
+  },
+  {
+    id: "ai-risks",
+    icon: "prohibition",
+    term: "AI Risks",
+    definition: "The real downsides: biased data, deepfakes, over-reliance, and misuse. Named risks are manageable risks, so spotting them is the first step."
+  },
+  {
+    id: "ai-opportunities",
+    icon: "star",
+    term: "AI Opportunities",
+    definition: "Where AI creates real value: small teams doing more, wider access, faster discovery, and freeing people for human work. AI is leverage you can aim."
+  },
+  {
+    id: "ai-policy",
+    icon: "book",
+    term: "AI Policy",
+    definition: "The rules societies write for AI, built around transparency, accountability, privacy, and safety. This is still being written and debated worldwide."
+  }
+];
+
+/* Look up a glossary card by id. */
+DECODED.glossaryById = function (id) {
+  return DECODED.glossary.filter(function (g) { return g.id === id; })[0];
+};
+</script>
+<script>
+/* ============================================================================
+   DECODED - LEVELS (all game content)
+   ----------------------------------------------------------------------------
+   This is where you edit questions, answers, and copy for every level.
+   You can change the text freely. Do NOT rename the "mechanic" field, that tells
+   the game which mini-game to run. Keep all visible text free of dashes.
+
+   Icons: the "icon" fields use Iconoir icon names (see js/icons.js for the
+   available set). Change them to any name listed there.
+
+   Each level has:
+     num         the level number, 1 to 11
+     chapter     the chapter it belongs to
+     title       the level title
+     tag         the one line teaser
+     glossaryId  which concept card unlocks (see data/glossary.js)
+     intro       the guide's spoken intro line
+     howToPlay   the bright "how to play" callout: what to tap and what it is worth
+     assignment  a realistic task the player can try to test their understanding
+     mechanic    which mini-game engine to use (do not rename)
+     ...         mechanic-specific content
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+DECODED.chapters = [
+  { id: "foundations", name: "Foundations" },
+  { id: "building",    name: "Building with AI" },
+  { id: "responsible", name: "Using AI Responsibly" },
+  { id: "risks",       name: "Risks and Opportunities" },
+  { id: "society",     name: "AI and Society" }
+];
+
+DECODED.levels = [
+
+  /* ======================= CHAPTER: FOUNDATIONS ======================= */
+
+  {
+    num: 1,
+    chapter: "foundations",
+    title: "What is AI, really?",
+    tag: "Sort the rule followers from the learners.",
+    glossaryId: "machine-learning",
+    intro: "Some machines follow rules a human typed in. Others learn from examples. Let's tell them apart.",
+    howToPlay: "Tap Follows rules or Learns from examples for each item. Worth 10 points each.",
+    assignment: "Look at three apps on your phone. For each one, decide out loud whether a human wrote its rules or it learned from examples. Text a friend your three picks and see if they agree.",
+    mechanic: "sort-binary",
+    points: 10,
+    options: [
+      { key: "rules",  label: "Follows rules", icon: "book" },
+      { key: "learns", label: "Learns from examples", icon: "brain" }
+    ],
+    items: [
+      { icon: "calculator", label: "A calculator",            answer: "rules",  why: "A person wrote the exact math rules. It never learns, it just follows them." },
+      { icon: "headset",    label: "Spotify recommendations", answer: "learns", why: "It learns your taste from what millions of people actually listen to." },
+      { icon: "bell",       label: "A 7am alarm",             answer: "rules",  why: "You set a rule: ring at 7am. Simple, fixed, no learning." },
+      { icon: "face-id",    label: "Face recognition",        answer: "learns", why: "It learned what faces look like from huge piles of example photos." },
+      { icon: "sun-light",  label: "A basic thermostat",      answer: "rules",  why: "A fixed rule: if it drops below the set temperature, turn on the heat." },
+      { icon: "mail",       label: "Spam filtering",          answer: "learns", why: "It learned what spam looks like from millions of emails people marked as junk." }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "Everything you put in the Learns pile has one thing in common: nobody wrote its rules by hand. It figured out the pattern from examples. That is Machine Learning, and it is the engine under almost everything people call AI."
+    }
+  },
+
+  {
+    num: 2,
+    chapter: "foundations",
+    title: "How does it learn?",
+    tag: "Train a model and watch data matter.",
+    glossaryId: "training-data",
+    intro: "A model is only as good as the examples you feed it. Let's train one and find out.",
+    howToPlay: "Tap Nature or Made by people to label each picture. Worth 10 points per correct label. Then watch your model take a test.",
+    assignment: "Think of a simple thing you would want AI to recognize, like your handwriting or your dog. Write down 5 example inputs and their correct labels. That tiny list is training data.",
+    mechanic: "train-model",
+    points: 10,
+    labels: [
+      { key: "nature", label: "Nature",         icon: "leaf" },
+      { key: "made",   label: "Made by people", icon: "calculator" }
+    ],
+    training: [
+      { icon: "sun-light", truth: "nature" },
+      { icon: "calculator", truth: "made" },
+      { icon: "leaf",      truth: "nature" },
+      { icon: "headset",   truth: "made" },
+      { icon: "cloud",     truth: "nature" },
+      { icon: "book",      truth: "made" }
+    ],
+    testing: [
+      { icon: "fire-flame", truth: "nature" },
+      { icon: "bell",       truth: "made" },
+      { icon: "half-moon",  truth: "nature" },
+      { icon: "code",       truth: "made" }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "The pictures you labeled are the Training Data. Label them well and the model aces the test. Feed it messy or wrong labels and it fails, no matter how clever it is. That is the whole game: garbage in, garbage out."
+    }
+  },
+
+  {
+    num: 3,
+    chapter: "foundations",
+    title: "How does it guess?",
+    tag: "Beat the AI at predicting the next word.",
+    glossaryId: "large-language-model",
+    intro: "A chatbot is really a next word guesser. Think you can out guess it? Let's see.",
+    howToPlay: "Read each sentence and tap the word you think is most likely next. Worth 15 points when you match the AI's top pick.",
+    assignment: "Open your phone's keyboard and type 'I am going to the'. Watch the words it suggests next, and note the top three. That is next word prediction sitting in your pocket.",
+    mechanic: "next-word",
+    points: 15,
+    rounds: [
+      {
+        stub: "The cat sat on the ___",
+        options: [
+          { word: "mat",    p: 0.72 },
+          { word: "roof",   p: 0.15 },
+          { word: "moon",   p: 0.08 },
+          { word: "idea",   p: 0.05 }
+        ]
+      },
+      {
+        stub: "I would like a hot cup of ___",
+        options: [
+          { word: "coffee", p: 0.58 },
+          { word: "tea",    p: 0.30 },
+          { word: "soup",   p: 0.09 },
+          { word: "sand",   p: 0.03 }
+        ]
+      },
+      {
+        stub: "Once upon a ___",
+        options: [
+          { word: "time",   p: 0.88 },
+          { word: "hill",   p: 0.06 },
+          { word: "while",  p: 0.04 },
+          { word: "table",  p: 0.02 }
+        ]
+      },
+      {
+        stub: "Thanks so much, I really appreciate ___",
+        options: [
+          { word: "it",     p: 0.64 },
+          { word: "you",    p: 0.27 },
+          { word: "cars",   p: 0.06 },
+          { word: "rain",   p: 0.03 }
+        ]
+      }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "You just did what a chatbot does all day: pick the most likely next word, then repeat. A Large Language Model has read almost everything, so its odds are sharp. It is not thinking, it is predicting, one word at a time."
+    }
+  },
+
+  {
+    num: 4,
+    chapter: "foundations",
+    title: "Why does it make things up?",
+    tag: "Catch the confident false claims.",
+    glossaryId: "hallucination",
+    intro: "AI can sound totally sure and be totally wrong. Let's train your radar for it.",
+    howToPlay: "For each statement, tap Real fact or Hallucination. Worth 10 points each.",
+    assignment: "Ask any chatbot for three facts about a topic you already know well. Fact check each one. Note which, if any, were stated confidently but turned out wrong.",
+    mechanic: "true-false",
+    points: 10,
+    options: [
+      { key: "real",  label: "Real fact", icon: "check-circle" },
+      { key: "fake",  label: "Hallucination", icon: "cloud" }
+    ],
+    statements: [
+      { text: "Honey found in ancient sealed jars can still be safe to eat.", answer: "real", why: "True. Honey's low moisture and acidity keep it from spoiling for a very long time." },
+      { text: "The Great Wall of China is clearly visible to the naked eye from the Moon.", answer: "fake", why: "False, and a classic myth. It is far too narrow to see from that distance." },
+      { text: "Octopuses have three hearts.", answer: "real", why: "True. Two pump blood to the gills, one to the rest of the body." },
+      { text: "Humans only use ten percent of their brains.", answer: "fake", why: "False. Brain scans show we use virtually all of it, just not all at once." },
+      { text: "Bananas are, botanically, a type of berry.", answer: "real", why: "True. By botanical definition bananas qualify as berries, while strawberries do not." },
+      { text: "Goldfish have a memory span of only three seconds.", answer: "fake", why: "False. Goldfish can remember things for weeks or even months." }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "The false ones sounded just as confident as the true ones. When AI does this it is called a Hallucination: it states something wrong with a straight face. The lesson is simple. Confident does not mean correct, so verify what matters."
+    }
+  },
+
+  {
+    num: 5,
+    chapter: "foundations",
+    title: "How do I talk to it?",
+    tag: "Turn a weak prompt into a great one.",
+    glossaryId: "prompt-engineering",
+    intro: "Same AI, wildly different answers, all down to how you ask. Let's upgrade a weak prompt.",
+    howToPlay: "Tap the upgrade chips to improve the prompt. Worth 10 points per upgrade, plus a 20 point bonus when all 4 are on.",
+    assignment: "Take a vague request you have, like 'help me write something'. Rewrite it once with a role, specifics, a format, and the audience. Notice how much sharper the ask becomes.",
+    mechanic: "prompt-upgrade",
+    points: 10,
+    completionBonus: 20,
+    basePrompt: "Write me an email.",
+    upgrades: [
+      { key: "role",     chip: "Add a role",      icon: "user",      text: "You are a friendly customer support lead." },
+      { key: "specific", chip: "Add specifics",   icon: "search",    text: "Apologize for a late order and offer a 10 percent discount." },
+      { key: "format",   chip: "Add a format",    icon: "list",      text: "Keep it under 120 words with a clear subject line." },
+      { key: "audience", chip: "Add the audience", icon: "community", text: "Written for a first time customer who is frustrated." }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "Same request, but now the AI knows who to be, what to say, how to shape it, and who is reading. That is Prompt Engineering: not magic words, just clear instructions. Role, specifics, format, and audience do most of the heavy lifting."
+    }
+  },
+
+  /* ===================== CHAPTER: BUILDING WITH AI ===================== */
+
+  {
+    num: 6,
+    chapter: "building",
+    title: "What is an agent?",
+    tag: "Equip an AI to get real tasks done.",
+    glossaryId: "ai-agent",
+    intro: "A chatbot talks. An agent acts. But only if you give it the right tools. Let's equip one.",
+    howToPlay: "Tap tools to equip your agent, then tap Run. Pick the right kit and earn a 30 point bonus. One tool is a trap.",
+    assignment: "Write down a real task with three steps, like planning a night out. For each step, name the one tool an AI agent would need to do it, such as search, calendar, or email.",
+    mechanic: "agent-tools",
+    bonus: 30,
+    goal: "Find a pizza place, check I am free this weekend, and email my friend Sam.",
+    tools: [
+      { key: "search",     icon: "search",     label: "Web Search",  needed: true },
+      { key: "calendar",   icon: "task-list",  label: "Calendar",    needed: true },
+      { key: "email",      icon: "mail",       label: "Email",       needed: true },
+      { key: "calculator", icon: "calculator", label: "Calculator",  needed: false }
+    ],
+    steps: [
+      { need: "search",   ok: "Searched the web and found Tony's Pizza nearby.",      fail: "Wanted to find a pizza place, but it has no way to search the web." },
+      { need: "calendar", ok: "Checked your calendar. Saturday afternoon is free.",   fail: "Tried to check the weekend, but it cannot see your calendar." },
+      { need: "email",    ok: "Drafted and sent an email to Sam with the plan.",      fail: "Wanted to email Sam, but it has no email tool." }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "You did not make the AI smarter, you made it capable. Give it Search, Calendar, and Email and it can actually get things done. That is an AI Agent: a model with tools and a goal. The Calculator was a trap, because more tools is not the point, the right tools are."
+    }
+  },
+
+  {
+    num: 7,
+    chapter: "building",
+    title: "What is vibe coding?",
+    tag: "Build software by describing it.",
+    glossaryId: "vibe-coding",
+    intro: "You can now build software without writing code, just by describing it. Let's get the flow right.",
+    howToPlay: "Tap the steps in the correct order, top to bottom. Worth 10 points for each step you place correctly.",
+    assignment: "Describe one small tool you wish existed in two plain sentences, as if you were telling a person. That description is the exact first step of vibe coding it into reality.",
+    mechanic: "order-steps",
+    points: 10,
+    steps: [
+      { order: 1, icon: "chat-bubble", text: "Describe what you want in plain English." },
+      { order: 2, icon: "code",        text: "The AI writes the code." },
+      { order: 3, icon: "play",        text: "Run it and see what happens." },
+      { order: 4, icon: "edit-pencil", text: "Refine by describing the change you want." }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "You describe, the AI builds, you run it, you refine. That loop is Vibe Coding, and it lets non coders make real things. One caution stays true: always run it and review what the AI builds, because it can be confidently wrong here too."
+    }
+  },
+
+  /* ================== CHAPTER: USING AI RESPONSIBLY ================== */
+
+  {
+    num: 8,
+    chapter: "responsible",
+    title: "Using AI the right way.",
+    tag: "Judge what is fair and safe to do.",
+    glossaryId: "responsible-ai-use",
+    intro: "AI is powerful, so the how matters. Let's sort the fair uses from the ones that cross a line.",
+    howToPlay: "For each situation, tap Okay to do or Not okay. Worth 10 points each.",
+    assignment: "Think back to the last time you used AI. Was it fair, honest, and private? Write one sentence on how you would keep that same task responsible next time.",
+    mechanic: "judge-scenarios",
+    points: 10,
+    options: [
+      { key: "okay",   label: "Okay to do", icon: "thumbs-up" },
+      { key: "notok",  label: "Not okay",   icon: "prohibition" }
+    ],
+    scenarios: [
+      { text: "Brainstorming ideas with AI, then doing the actual work yourself.", answer: "okay",  why: "Great use. It is a thinking partner, and the work is still yours." },
+      { text: "Submitting an AI written essay as your own original work.",          answer: "notok", why: "Not okay. Passing off AI work as yours is dishonest, and often against the rules." },
+      { text: "Pasting a client's private data into a public AI tool.",             answer: "notok", why: "Not okay. That data can be stored or exposed. Keep private info out of public tools." },
+      { text: "Drafting a report with AI, then fact checking every claim yourself.", answer: "okay",  why: "Responsible. You use the speed, then you own the accuracy." },
+      { text: "Letting AI reject job candidates automatically with no human review.", answer: "notok", why: "Not okay. High stakes decisions about people need a human in the loop." }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "Notice the pattern. AI is a fine helper and a bad stand in for honesty, privacy, and human judgment. That is Responsible AI Use: lean on it for drafts and ideas, and keep a person accountable for the things that really matter."
+    }
+  },
+
+  /* ============== CHAPTER: RISKS AND OPPORTUNITIES ============== */
+
+  {
+    num: 9,
+    chapter: "risks",
+    title: "The risks of AI.",
+    tag: "Name the danger in each scenario.",
+    glossaryId: "ai-risks",
+    intro: "You cannot manage a risk you cannot name. Let's put names to the big ones.",
+    howToPlay: "Read each scenario and tap the risk it shows. Worth 12 points each.",
+    assignment: "Find one news story about AI this week. In a sentence, name which risk it shows: bias, deepfakes, over-reliance, or misuse. Spotting it is the first step to managing it.",
+    mechanic: "multiple-choice",
+    points: 12,
+    questions: [
+      {
+        scenario: "A hiring AI was trained mostly on resumes from men, so it quietly downranks women.",
+        options: ["Bias from unrepresentative data", "Deepfakes and misinformation", "Over-reliance", "Security misuse"],
+        answer: 0,
+        why: "When the training data is skewed, the model learns and repeats that skew as if it were fair."
+      },
+      {
+        scenario: "A realistic fake video shows a leader saying something they never said, and it goes viral.",
+        options: ["Bias from unrepresentative data", "Deepfakes and misinformation", "Over-reliance", "Security misuse"],
+        answer: 1,
+        why: "AI can fabricate convincing fake media, which makes it easy to spread false information."
+      },
+      {
+        scenario: "A student uses AI for every answer and slowly loses the ability to solve problems alone.",
+        options: ["Bias from unrepresentative data", "Deepfakes and misinformation", "Over-reliance", "Security misuse"],
+        answer: 2,
+        why: "Leaning on AI for everything can quietly erode your own skills and judgment."
+      },
+      {
+        scenario: "Someone uses AI to write convincing scam emails at massive scale.",
+        options: ["Bias from unrepresentative data", "Deepfakes and misinformation", "Over-reliance", "Security misuse"],
+        answer: 3,
+        why: "The same tools that help can be aimed at harm, like automating fraud and attacks."
+      }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "Bias, deepfakes, over-reliance, and misuse. These are the AI Risks worth watching. None of them are reasons to panic. Named risks are manageable risks, and now you can spot them in the wild."
+    }
+  },
+
+  {
+    num: 10,
+    chapter: "risks",
+    title: "The opportunities in AI.",
+    tag: "Spot where AI creates real value.",
+    glossaryId: "ai-opportunities",
+    intro: "Now the upside. Let's find where AI is genuine leverage, not just hype.",
+    howToPlay: "Read each scenario and tap the opportunity it shows. Worth 12 points each.",
+    assignment: "Pick one thing you do that takes too long. Write one specific way AI could give you leverage on it, then try it this week and see what happens.",
+    mechanic: "multiple-choice",
+    points: 12,
+    questions: [
+      {
+        scenario: "A two person startup ships work that used to need a whole department.",
+        options: ["Small team leverage", "Wider access and inclusion", "Faster discovery", "Freeing time for human work"],
+        answer: 0,
+        why: "AI lets tiny teams punch far above their weight."
+      },
+      {
+        scenario: "A free app translates lessons in real time so more people can learn in their own language.",
+        options: ["Small team leverage", "Wider access and inclusion", "Faster discovery", "Freeing time for human work"],
+        answer: 1,
+        why: "AI can lower barriers and bring tools to people who were left out before."
+      },
+      {
+        scenario: "Researchers screen millions of molecules in days to find promising new medicines.",
+        options: ["Small team leverage", "Wider access and inclusion", "Faster discovery", "Freeing time for human work"],
+        answer: 2,
+        why: "AI can accelerate research that would take humans years by hand."
+      },
+      {
+        scenario: "AI handles a nurse's paperwork so they spend more time with patients.",
+        options: ["Small team leverage", "Wider access and inclusion", "Faster discovery", "Freeing time for human work"],
+        answer: 3,
+        why: "Offloading busywork frees people for the human parts of the job."
+      }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "Small teams doing more, wider access, faster discovery, and more time for human work. Those are the AI Opportunities. The theme is simple: AI is leverage you can aim, so point it at something worth doing."
+    }
+  },
+
+  /* ==================== CHAPTER: AI AND SOCIETY ==================== */
+
+  {
+    num: 11,
+    chapter: "society",
+    title: "How AI gets governed.",
+    tag: "Match each policy idea to its goal.",
+    glossaryId: "ai-policy",
+    intro: "Societies are writing the rules for AI right now. Let's match each rule to the goal behind it.",
+    howToPlay: "Read each policy idea and tap the principle behind it. Worth 12 points each.",
+    assignment: "In one sentence, say which matters most to you in AI rules: transparency, accountability, privacy, or safety, and why. There is no wrong answer, this debate is still being had worldwide.",
+    mechanic: "multiple-choice",
+    points: 12,
+    questions: [
+      {
+        scenario: "A rule says AI generated content must be clearly labeled as AI made.",
+        options: ["Transparency", "Accountability", "Privacy", "Safety"],
+        answer: 0,
+        why: "The goal is transparency: people should know when they are dealing with AI."
+      },
+      {
+        scenario: "A rule says a company stays legally responsible when its AI causes harm.",
+        options: ["Transparency", "Accountability", "Privacy", "Safety"],
+        answer: 1,
+        why: "The goal is accountability: someone must answer for what the system does."
+      },
+      {
+        scenario: "A rule limits how companies collect and use your personal data to train AI.",
+        options: ["Transparency", "Accountability", "Privacy", "Safety"],
+        answer: 2,
+        why: "The goal is privacy: protecting your personal information from misuse."
+      },
+      {
+        scenario: "A rule requires testing powerful AI systems before they are released to the public.",
+        options: ["Transparency", "Accountability", "Privacy", "Safety"],
+        answer: 3,
+        why: "The goal is safety: catch serious problems before they can cause harm."
+      }
+    ],
+    reveal: {
+      title: "What just happened",
+      body: "Transparency, accountability, privacy, and safety are the goals most AI rules aim at. Worth remembering: AI policy is still being written and debated worldwide, and reasonable people disagree about how far the rules should go. This is AI Policy, and it is a live conversation you are now part of."
+    }
+  }
+];
+
+/* Convenience lookups */
+DECODED.levelByNum = function (n) {
+  return DECODED.levels.filter(function (l) { return l.num === n; })[0];
+};
+DECODED.chapterName = function (id) {
+  var c = DECODED.chapters.filter(function (x) { return x.id === id; })[0];
+  return c ? c.name : "";
+};
+</script>
+<script>
+/* ============================================================================
+   DECODED - MISC COPY and LEADERBOARD SEED
+   ----------------------------------------------------------------------------
+   Small bits of visible text and the starting leaderboard entries live here.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+DECODED.copy = {
+  splashIntro: "A quick, playable crash course in what AI actually is and how to use it. Eleven tiny games, zero jargon to start.",
+  guidePickTitle: "Pick your guide",
+  guidePickSub: "They will walk you through all 11 levels. You can switch anytime.",
+  homeBubbleDefault: "Ready when you are. Pick a level and let's decode some AI.",
+  certTitle: "You have Decoded AI",
+  certLine: "I decoded AI. Can you?",
+  emailTitle: "Get your free AI starter guide",
+  emailSub: "One short email with the essentials, from the team that built this game.",
+  emailButton: "Send it to me",
+  emailSuccess: "You're in. Check your inbox for your free AI starter guide.",
+  shareHeadline: "I decoded AI. Can you?"
+};
+
+/* Starting leaderboard. Sorted by score in code, so order here does not matter.
+   Later this whole list can be replaced by a shared backend leaderboard. */
+DECODED.leaderboardSeed = [
+  { initials: "EDDY", score: 640 },
+  { initials: "AVA",  score: 560 },
+  { initials: "MAX",  score: 470 },
+  { initials: "ZOE",  score: 395 },
+  { initials: "KAI",  score: 300 }
+];
+</script>
+<script>
+/* ============================================================================
+   DECODED - UI HELPERS
+   ----------------------------------------------------------------------------
+   Tiny DOM helpers shared across the app. No framework, just less boilerplate.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+DECODED.dom = {
+  // Create an element: el("button", "btn primary", "Go", { onclick: fn })
+  el: function (tag, className, html, attrs) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (html !== undefined && html !== null) node.innerHTML = html;
+    if (attrs) {
+      for (var k in attrs) {
+        if (k === "onclick") node.addEventListener("click", attrs[k]);
+        else if (k === "onkeydown") node.addEventListener("keydown", attrs[k]);
+        else if (k === "oninput") node.addEventListener("input", attrs[k]);
+        else if (k === "onsubmit") node.addEventListener("submit", attrs[k]);
+        else if (k === "text") node.textContent = attrs[k];
+        else node.setAttribute(k, attrs[k]);
+      }
+    }
+    return node;
+  },
+
+  clear: function (node) { while (node.firstChild) node.removeChild(node.firstChild); },
+
+  // Staggered pop-in for a list of child nodes.
+  stagger: function (nodes, step) {
+    step = step || 60;
+    for (var i = 0; i < nodes.length; i++) {
+      nodes[i].style.animationDelay = (i * step) + "ms";
+      nodes[i].classList.add("pop-in");
+    }
+  },
+
+  escape: function (s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  }
+};
+</script>
+<script>
+/* ============================================================================
+   DECODED - ICONS
+   ----------------------------------------------------------------------------
+   Inline SVG icons from Iconoir (https://iconoir.com), MIT licensed.
+   They are inlined so the game works fully offline. Each entry is the inner
+   markup of an Iconoir 24x24 icon (stroke = currentColor, so they take on the
+   surrounding text color).
+
+   Use with DECODED.icon("name", { size: 20 }). Default size follows font size.
+   To add an icon: grab its SVG from iconoir.com and paste the inner elements
+   here under a new key.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+  var P = {
+    star: '<path d="M8.58737 8.23597L11.1849 3.00376C11.5183 2.33208 12.4817 2.33208 12.8151 3.00376L15.4126 8.23597L21.2215 9.08017C21.9668 9.18848 22.2638 10.0994 21.7243 10.6219L17.5217 14.6918L18.5135 20.4414C18.6409 21.1798 17.8614 21.7428 17.1945 21.3941L12 18.678L6.80547 21.3941C6.1386 21.7428 5.35909 21.1798 5.48645 20.4414L6.47825 14.6918L2.27575 10.6219C1.73617 10.0994 2.03322 9.18848 2.77852 9.08017L8.58737 8.23597Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "fire-flame": '<path d="M8 18C8 20.4148 9.79086 21 12 21C15.7587 21 17 18.5 14.5 13.5C11 18 10.5 11 11 9C9.5 12 8 14.8177 8 18Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 21C17.0495 21 20 18.0956 20 13.125C20 8.15444 12 3 12 3C12 3 4 8.15444 4 13.125C4 18.0956 6.95054 21 12 21Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "check-circle": '<path d="M7 12.5L10 15.5L17 8.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "xmark-circle": '<path d="M9.17218 14.8284L12.0006 12M14.829 9.17157L12.0006 12M12.0006 12L9.17218 9.17157M12.0006 12L14.829 14.8284" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    play: '<path d="M6.90588 4.53682C6.50592 4.2998 6 4.58808 6 5.05299V18.947C6 19.4119 6.50592 19.7002 6.90588 19.4632L18.629 12.5162C19.0211 12.2838 19.0211 11.7162 18.629 11.4838L6.90588 4.53682Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    lock: '<path d="M16 12H17.4C17.7314 12 18 12.2686 18 12.6V19.4C18 19.7314 17.7314 20 17.4 20H6.6C6.26863 20 6 19.7314 6 19.4V12.6C6 12.2686 6.26863 12 6.6 12H8M16 12V8C16 6.66667 15.2 4 12 4C8.8 4 8 6.66667 8 8V12M16 12H8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    sparks: '<path d="M8 15C12.8747 15 15 12.949 15 8C15 12.949 17.1104 15 22 15C17.1104 15 15 17.1104 15 22C15 17.1104 12.8747 15 8 15Z" stroke="currentColor" stroke-linejoin="round"/><path d="M2 6.5C5.13376 6.5 6.5 5.18153 6.5 2C6.5 5.18153 7.85669 6.5 11 6.5C7.85669 6.5 6.5 7.85669 6.5 11C6.5 7.85669 5.13376 6.5 2 6.5Z" stroke="currentColor" stroke-linejoin="round"/>',
+
+    trophy: '<path d="M6.74534 4H17.3132C17.3132 4 16.4326 17.2571 12.0293 17.2571C9.87826 17.2571 8.56786 14.0935 7.79011 10.8571C6.97574 7.46844 6.74534 4 6.74534 4Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.3132 4C17.3132 4 18.2344 3.01733 19 2.99999C20.5 2.96603 20.7773 4 20.7773 4C21.0709 4.60953 21.3057 6.19429 19.8967 7.65715C18.4876 9.12 16.9103 10.4 16.2684 10.8571" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.74527 4.00001C6.74527 4.00001 5.78547 3.00614 4.99995 3.00001C3.49995 2.9883 3.22264 4.00001 3.22264 4.00001C2.92908 4.60953 2.69424 6.19429 4.1033 7.65715C5.51235 9.12001 7.14823 10.4 7.79004 10.8572" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.50662 20C8.50662 18.1714 12.0292 17.2571 12.0292 17.2571C12.0292 17.2571 15.5519 18.1714 15.5519 20H8.50662Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "light-bulb": '<path d="M9 18H15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 21H14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.00082 15C9.00098 13 8.50098 12.5 7.50082 11.5C6.50067 10.5 6.02422 9.48689 6.00082 8C5.95284 4.95029 8.00067 3 12.0008 3C16.001 3 18.0488 4.95029 18.0008 8C17.9774 9.48689 17.5007 10.5 16.5008 11.5C15.501 12.5 15.001 13 15.0008 15" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    download: '<path d="M6 20L18 20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4V16M12 16L15.5 12.5M12 16L8.5 12.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "share-android": '<path d="M18 22C19.6569 22 21 20.6569 21 19C21 17.3431 19.6569 16 18 16C16.3431 16 15 17.3431 15 19C15 20.6569 16.3431 22 18 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 8C19.6569 8 21 6.65685 21 5C21 3.34315 19.6569 2 18 2C16.3431 2 15 3.34315 15 5C15 6.65685 16.3431 8 18 8Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 15C7.65685 15 9 13.6569 9 12C9 10.3431 7.65685 9 6 9C4.34315 9 3 10.3431 3 12C3 13.6569 4.34315 15 6 15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.5 6.5L8.5 10.5" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 13.5L15.5 17.5" stroke="currentColor" stroke-width="1.5"/>',
+
+    mail: '<path d="M7 9L12 12.5L17 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 17V7C2 5.89543 2.89543 5 4 5H20C21.1046 5 22 5.89543 22 7V17C22 18.1046 21.1046 19 20 19H4C2.89543 19 2 18.1046 2 17Z" stroke="currentColor" stroke-width="1.5"/>',
+
+    "half-moon": '<path d="M3 11.5066C3 16.7497 7.25034 21 12.4934 21C16.2209 21 19.4466 18.8518 21 15.7259C12.4934 15.7259 8.27411 11.5066 8.27411 3C5.14821 4.55344 3 7.77915 3 11.5066Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "task-list": '<path d="M9 6L20 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.80002 5.79999L4.60002 6.59998L6.60001 4.59999" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.80002 11.8L4.60002 12.6L6.60001 10.6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.80002 17.8L4.60002 18.6L6.60001 16.6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 12L20 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 18L20 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    brain: '<path d="M7 14C5.34315 14 4 15.3431 4 17C4 18.6569 5.34315 20 7 20C7.35064 20 7.68722 19.9398 8 19.8293" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4.26392 15.6046C2.9243 14.9582 2.00004 13.587 2.00004 12C2.00004 10.7883 2.53877 9.70251 3.38978 8.96898" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.42053 8.8882C3.1549 8.49109 3 8.01363 3 7.5C3 6.11929 4.11929 5 5.5 5C6.06291 5 6.58237 5.18604 7.00024 5.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.23769 5.56533C7.08524 5.24215 7 4.88103 7 4.5C7 3.11929 8.11929 2 9.5 2C10.8807 2 12 3.11929 12 4.5V20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 20C8 21.1046 8.89543 22 10 22C11.1046 22 12 21.1046 12 20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 7C12 8.65685 13.3431 10 15 10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 14C18.6569 14 20 15.3431 20 17C20 18.6569 18.6569 20 17 20C16.6494 20 16.3128 19.9398 16 19.8293" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.7361 15.6046C21.0757 14.9582 22 13.587 22 12C22 10.7883 21.4612 9.70251 20.6102 8.96898" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M20.5795 8.8882C20.8451 8.49109 21 8.01363 21 7.5C21 6.11929 19.8807 5 18.5 5C17.9371 5 17.4176 5.18604 16.9998 5.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 4.5C12 3.11929 13.1193 2 14.5 2C15.8807 2 17 3.11929 17 4.5C17 4.88103 16.9148 5.24215 16.7623 5.56533" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 20C16 21.1046 15.1046 22 14 22C12.8954 22 12 21.1046 12 20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "refresh-double": '<path d="M21.1679 8C19.6247 4.46819 16.1006 2 11.9999 2C6.81459 2 2.55104 5.94668 2.04932 11" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 8H21.4C21.7314 8 22 7.73137 22 7.4V3" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M2.88146 16C4.42458 19.5318 7.94874 22 12.0494 22C17.2347 22 21.4983 18.0533 22 13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.04932 16H2.64932C2.31795 16 2.04932 16.2686 2.04932 16.6V21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "arrow-left": '<path d="M21 12L3 12M3 12L11.5 3.5M3 12L11.5 20.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "sun-light": '<path d="M12 18C15.3137 18 18 15.3137 18 12C18 8.68629 15.3137 6 12 6C8.68629 6 6 8.68629 6 12C6 15.3137 8.68629 18 12 18Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M22 12L23 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 2V1" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 23V22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 20L19 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 4L19 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20L5 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 4L5 5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 12L2 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "nav-arrow-right": '<path d="M9 6L15 12L9 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    calculator: '<path d="M1 21V3C1 1.89543 1.89543 1 3 1H21C22.1046 1 23 1.89543 23 3V21C23 22.1046 22.1046 23 21 23H3C1.89543 23 1 22.1046 1 21Z" stroke="currentColor" stroke-width="1.5"/><path d="M15 7L17 7H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 15.5H17L19 15.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 18.5H17H19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 7H7M9 7H7M7 7V5M7 7V9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.58609 18.4142L7.0003 17M8.41452 15.5858L7.0003 17M7.0003 17L5.58609 15.5858M7.0003 17L8.41452 18.4142" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "face-id": '<path d="M7 3H5C3.89543 3 3 3.89543 3 5V7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 3H19C20.1046 3 21 3.89543 21 5V7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 8L16 10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 8L8 10" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 16C9 16 10 17 12 17C14 17 15 16 15 16" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8L12 13L11 13" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 21H5C3.89543 21 3 20.1046 3 19V17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 21H19C20.1046 21 21 20.1046 21 19V17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    user: '<path d="M5 20V19C5 15.134 8.13401 12 12 12V12C15.866 12 19 15.134 19 19V20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    search: '<path d="M17 17L21 21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11C3 15.4183 6.58172 19 11 19C13.213 19 15.2161 18.1015 16.6644 16.6493C18.1077 15.2022 19 13.2053 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    list: '<path d="M8 6L20 6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 6.01L4.01 5.99889" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 12.01L4.01 11.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 18.01L4.01 17.9989" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 12L20 12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 18L20 18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    book: '<path d="M4 19V5C4 3.89543 4.89543 3 6 3H19.4C19.7314 3 20 3.26863 20 3.6V16.7143" stroke="currentColor" stroke-linecap="round"/><path d="M6 17L20 17" stroke="currentColor" stroke-linecap="round"/><path d="M6 21L20 21" stroke="currentColor" stroke-linecap="round"/><path d="M6 21C4.89543 21 4 20.1046 4 19C4 17.8954 4.89543 17 6 17" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 7L15 7" stroke="currentColor" stroke-linecap="round"/>',
+
+    community: '<path d="M7 18V17C7 14.2386 9.23858 12 12 12V12C14.7614 12 17 14.2386 17 17V18" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M1 18V17C1 15.3431 2.34315 14 4 14V14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M23 18V17C23 15.3431 21.6569 14 20 14V14" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 14C5.10457 14 6 13.1046 6 12C6 10.8954 5.10457 10 4 10C2.89543 10 2 10.8954 2 12C2 13.1046 2.89543 14 4 14Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 14C21.1046 14 22 13.1046 22 12C22 10.8954 21.1046 10 20 10C18.8954 10 18 10.8954 18 12C18 13.1046 18.8954 14 20 14Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "chat-bubble": '<path d="M17 12.5C17.2761 12.5 17.5 12.2761 17.5 12C17.5 11.7239 17.2761 11.5 17 11.5C16.7239 11.5 16.5 11.7239 16.5 12C16.5 12.2761 16.7239 12.5 17 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 12.5C12.2761 12.5 12.5 12.2761 12.5 12C12.5 11.7239 12.2761 11.5 12 11.5C11.7239 11.5 11.5 11.7239 11.5 12C11.5 12.2761 11.7239 12.5 12 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M7 12.5C7.27614 12.5 7.5 12.2761 7.5 12C7.5 11.7239 7.27614 11.5 7 11.5C6.72386 11.5 6.5 11.7239 6.5 12C6.5 12.2761 6.72386 12.5 7 12.5Z" fill="currentColor" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 13.8214 2.48697 15.5291 3.33782 17L2.5 21.5L7 20.6622C8.47087 21.513 10.1786 22 12 22Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    leaf: '<path d="M7 21C7 21 7.5 16.5 11 12.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.1297 4.24224L19.7243 10.4167C20.0984 14.3026 17.1849 17.7626 13.2989 18.1367C9.486 18.5039 6.03191 15.7168 5.66477 11.9039C5.29763 8.09099 8.09098 4.70237 11.9039 4.33523L18.475 3.70251C18.8048 3.67074 19.098 3.91239 19.1297 4.24224Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    code: '<path d="M13.5 6L10 18.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.5 8.5L3 12L6.5 15.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.5 8.5L21 12L17.5 15.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "edit-pencil": '<path d="M14.3632 5.65156L15.8431 4.17157C16.6242 3.39052 17.8905 3.39052 18.6716 4.17157L20.0858 5.58579C20.8668 6.36683 20.8668 7.63316 20.0858 8.41421L18.6058 9.8942M14.3632 5.65156L4.74749 15.2672C4.41542 15.5993 4.21079 16.0376 4.16947 16.5054L3.92738 19.2459C3.87261 19.8659 4.39148 20.3848 5.0115 20.33L7.75191 20.0879C8.21972 20.0466 8.65806 19.8419 8.99013 19.5099L18.6058 9.8942M14.3632 5.65156L18.6058 9.8942" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    headset: '<path d="M4 13.4998L3.51493 13.6211C2.62459 13.8437 2 14.6437 2 15.5614V17.4383C2 18.356 2.62459 19.156 3.51493 19.3786L5.25448 19.8135C5.63317 19.9081 6 19.6217 6 19.2314V13.7683C6 13.378 5.63317 13.0916 5.25448 13.1862L4 13.4998ZM4 13.4998V13C4 8.02944 7.58172 4 12 4C16.4183 4 20 8.02944 20 13V13.5M20 13.5L20.4851 13.6211C21.3754 13.8437 22 14.6437 22 15.5614V17.4383C22 18.356 21.3754 19.156 20.4851 19.3786L18.7455 19.8135C18.3668 19.9081 18 19.6217 18 19.2314V13.7683C18 13.378 18.3668 13.0916 18.7455 13.1862L20 13.5Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    bell: '<path d="M18 8.4C18 6.70261 17.3679 5.07475 16.2426 3.87452C15.1174 2.67428 13.5913 2 12 2C10.4087 2 8.88258 2.67428 7.75736 3.87452C6.63214 5.07475 6 6.70261 6 8.4C6 15.8667 3 18 3 18H21C21 18 18 15.8667 18 8.4Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/><path d="M13.73 21C13.5542 21.3031 13.3019 21.5547 12.9982 21.7295C12.6946 21.9044 12.3504 21.9965 12 21.9965C11.6496 21.9965 11.3054 21.9044 11.0018 21.7295C10.6982 21.5547 10.4458 21.3031 10.27 21" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    cloud: '<path d="M12 4C6 4 6 8 6 10C4.33333 10 1 11 1 15C1 19 4.33333 20 6 20H18C19.6667 20 23 19 23 15C23 11 19.6667 10 18 10C18 8 18 4 12 4Z" stroke="currentColor" stroke-linejoin="round"/>',
+
+    prohibition: '<path d="M19.1414 5C17.3265 3.14864 14.7974 2 12 2C6.47715 2 2 6.47715 2 12C2 14.7255 3.09032 17.1962 4.85857 19M19.1414 5C20.9097 6.80375 22 9.27455 22 12C22 17.5228 17.5228 22 12 22C9.20261 22 6.67349 20.8514 4.85857 19M19.1414 5L4.85857 19" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>',
+
+    "thumbs-up": '<path d="M16.4724 20H4.1C3.76863 20 3.5 19.7314 3.5 19.4V9.6C3.5 9.26863 3.76863 9 4.1 9H6.86762C7.57015 9 8.22116 8.6314 8.5826 8.02899L11.293 3.51161C11.8779 2.53688 13.2554 2.44422 13.9655 3.33186C14.3002 3.75025 14.4081 4.30635 14.2541 4.81956L13.2317 8.22759C13.1162 8.61256 13.4045 9 13.8064 9H18.3815C19.7002 9 20.658 10.254 20.311 11.5262L18.4019 18.5262C18.1646 19.3964 17.3743 20 16.4724 20Z" stroke="currentColor" stroke-linecap="round"/><path d="M7 20L7 9" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"/>'
+  };
+
+  /* Returns an inline SVG string for the named icon.
+     opts.size: pixel size (default follows font size via 1em).
+     opts.cls:  extra CSS classes. */
+  DECODED.icon = function (name, opts) {
+    opts = opts || {};
+    var inner = P[name];
+    if (!inner) inner = P["sparks"]; // graceful fallback
+    var size = opts.size ? (opts.size + "") : "1em";
+    var w = opts.size ? size : "1em";
+    var cls = "ic" + (opts.cls ? " " + opts.cls : "");
+    return '<svg class="' + cls + '" viewBox="0 0 24 24" width="' + w + '" height="' + w +
+      '" fill="none" stroke-width="1.6" aria-hidden="true" focusable="false" ' +
+      'xmlns="http://www.w3.org/2000/svg">' + inner + '</svg>';
+  };
+
+  // Expose the set of available icon names (handy for a future icon audit).
+  DECODED.iconNames = Object.keys(P);
+})();
+</script>
+<script>
+/* ============================================================================
+   DECODED - MASCOT
+   ----------------------------------------------------------------------------
+   Builds the robot head as inline SVG so it can animate.
+     - Ada: neon green, antenna to the upper-left ending in a round ball.
+            This is the exact attached character and the official app logo.
+     - Leo: cyan variant, antenna mirrored to the upper-right with a square tip,
+            plus small headphone pads on the left and right of the head.
+
+   Animations (blink, look, bob) are CSS classes defined in css/styles.css.
+   Pass animate:false for a still version (used when reduced motion is on).
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+  var uid = 0;
+
+  DECODED.mascotSVG = function (guideId, opts) {
+    opts = opts || {};
+    var g = DECODED.guides[guideId] || DECODED.guides.ada;
+    var color = g.color;
+    var animate = opts.animate !== false;
+    var size = opts.size || 120;
+    var id = "m" + (uid++);
+    var isLeo = guideId === "leo";
+
+    var bobClass = animate ? "dc-bob" : "";
+    var eyesClass = animate ? "dc-eyes" : "";
+    var eyeClass = animate ? "dc-eye" : "";
+
+    // Antenna differs per guide.
+    var antenna;
+    if (isLeo) {
+      // Upper-right stalk ending in a small square tip.
+      antenna =
+        '<path d="M124 58 Q138 44 143 32" stroke="' + color + '" stroke-width="9" stroke-linecap="round" fill="none"/>' +
+        '<rect x="135" y="20" width="20" height="20" rx="4" fill="' + color + '" transform="rotate(12 145 30)"/>';
+    } else {
+      // Upper-left stalk ending in a round ball.
+      antenna =
+        '<path d="M76 58 Q62 44 58 32" stroke="' + color + '" stroke-width="9" stroke-linecap="round" fill="none"/>' +
+        '<circle cx="55" cy="30" r="12" fill="' + color + '"/>';
+    }
+
+    // Headphone pads only on Leo.
+    var pads = "";
+    if (isLeo) {
+      pads =
+        '<rect x="20" y="96" width="16" height="36" rx="8" fill="' + g.dim + '"/>' +
+        '<rect x="164" y="96" width="16" height="36" rx="8" fill="' + g.dim + '"/>';
+    }
+
+    return '' +
+      '<svg class="dc-mascot" viewBox="0 0 200 210" width="' + size + '" height="' + (size * 1.05) +
+        '" role="img" aria-label="' + g.name + ' the Decoded mascot" xmlns="http://www.w3.org/2000/svg">' +
+        '<defs>' +
+          '<radialGradient id="' + id + 'head" cx="42%" cy="34%" r="72%">' +
+            '<stop offset="0%" stop-color="' + lighten(color) + '"/>' +
+            '<stop offset="100%" stop-color="' + color + '"/>' +
+          '</radialGradient>' +
+        '</defs>' +
+        '<g class="' + bobClass + '">' +
+          pads +
+          antenna +
+          // Head
+          '<circle cx="100" cy="114" r="72" fill="url(#' + id + 'head)"/>' +
+          // Visor
+          '<ellipse cx="100" cy="116" rx="46" ry="31" fill="#080809"/>' +
+          // Eyes (wrapped for the look shift; each eye squashes for the blink)
+          '<g class="' + eyesClass + '">' +
+            '<circle class="' + eyeClass + '" cx="83" cy="116" r="9.5" fill="' + color + '"/>' +
+            '<circle class="' + eyeClass + '" cx="117" cy="116" r="9.5" fill="' + color + '"/>' +
+          '</g>' +
+        '</g>' +
+      '</svg>';
+  };
+
+  // Small helper to nudge a hex color lighter for the head highlight.
+  function lighten(hex) {
+    var c = hex.replace("#", "");
+    var r = parseInt(c.substring(0, 2), 16);
+    var gr = parseInt(c.substring(2, 4), 16);
+    var b = parseInt(c.substring(4, 6), 16);
+    r = Math.min(255, Math.round(r + (255 - r) * 0.28));
+    gr = Math.min(255, Math.round(gr + (255 - gr) * 0.28));
+    b = Math.min(255, Math.round(b + (255 - b) * 0.28));
+    return "rgb(" + r + "," + gr + "," + b + ")";
+  }
+})();
+</script>
+<script>
+/* ============================================================================
+   DECODED - STATE
+   ----------------------------------------------------------------------------
+   All player progress lives in the browser via localStorage. This module is the
+   single place that reads and writes it, so a real backend can be added later
+   without touching game logic: swap the load/save internals for API calls.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+  var PREFIX = DECODED.config.STORAGE_PREFIX;
+  var KEY = PREFIX + "state";
+
+  function defaults() {
+    return {
+      guide: null,           // "ada" | "leo"
+      score: 0,
+      streak: 0,             // current streak, resets only on a wrong answer
+      bestStreak: 0,
+      completed: [],         // array of level nums finished
+      unlockedGlossary: [],  // array of glossary ids
+      email: null,           // captured email (local copy)
+      certificateSeen: false,
+      theme: "dark",         // "dark" | "light"
+      user: null             // signed-in Google user (when sign-in is enabled)
+    };
+  }
+
+  var state = load();
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (!raw) return defaults();
+      var parsed = JSON.parse(raw);
+      var base = defaults();
+      for (var k in base) {
+        if (parsed[k] !== undefined) base[k] = parsed[k];
+      }
+      return base;
+    } catch (e) {
+      return defaults();
+    }
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch (e) { /* storage may be full or blocked; game still runs in memory */ }
+  }
+
+  DECODED.state = {
+    get: function () { return state; },
+
+    setGuide: function (id) { state.guide = id; save(); },
+
+    addScore: function (n) { state.score += n; save(); return state.score; },
+
+    // Streak increases on each correct answer and resets only on a wrong one.
+    bumpStreak: function () {
+      state.streak += 1;
+      if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+      save();
+      return state.streak;
+    },
+    resetStreak: function () { state.streak = 0; save(); },
+
+    isCompleted: function (num) { return state.completed.indexOf(num) !== -1; },
+
+    completeLevel: function (num, glossaryId) {
+      if (state.completed.indexOf(num) === -1) state.completed.push(num);
+      if (glossaryId && state.unlockedGlossary.indexOf(glossaryId) === -1) {
+        state.unlockedGlossary.push(glossaryId);
+      }
+      save();
+    },
+
+    // A level is unlocked if it is level 1, already done, or the previous is done.
+    isUnlocked: function (num) {
+      if (num <= 1) return true;
+      if (this.isCompleted(num)) return true;
+      return this.isCompleted(num - 1);
+    },
+
+    setEmail: function (email) { state.email = email; save(); },
+
+    setTheme: function (theme) { state.theme = theme; save(); },
+
+    setUser: function (user) { state.user = user; save(); },
+    clearUser: function () { state.user = null; save(); },
+
+    markCertificateSeen: function () { state.certificateSeen = true; save(); },
+
+    // Reset progress and score, but keep the player's account and theme choice.
+    reset: function () {
+      var keepTheme = state.theme, keepUser = state.user;
+      state = defaults();
+      state.theme = keepTheme;
+      state.user = keepUser;
+      save();
+    }
+  };
+})();
+</script>
+<script>
+/* ============================================================================
+   DECODED - AUTH (optional Google sign-in gate)
+   ----------------------------------------------------------------------------
+   Turns on ONLY when config.GOOGLE_CLIENT_ID is set. When on, players must sign
+   in with Google before playing. The Google Identity Services script is loaded
+   on demand (never loaded when sign-in is off), so the game stays offline-first
+   by default.
+
+   IMPORTANT (security): the Google ID token is decoded here in the browser just
+   to greet the player and remember who they are locally. This is NOT a secured
+   account. For real accounts, send the raw token to a server and verify it with
+   Google before trusting the identity. The code is shaped so that upgrade is a
+   drop-in: replace _userFromCredential / setUser with a call to your backend.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+  var GIS_SRC = "https://accounts.google.com/gsi/client";
+  var loaded = false, loading = false, waiters = [];
+
+  function flush(ok) {
+    loaded = ok;
+    var list = waiters.slice();
+    waiters = [];
+    list.forEach(function (cb) { cb(ok); });
+  }
+
+  DECODED.auth = {
+    // Sign-in is available only when a Client ID is configured.
+    isEnabled: function () {
+      var id = DECODED.config.GOOGLE_CLIENT_ID;
+      return !!(id && String(id).trim());
+    },
+
+    // Whether players are REQUIRED to sign in before playing.
+    isRequired: function () {
+      return this.isEnabled() && DECODED.config.REQUIRE_SIGN_IN !== false;
+    },
+
+    getUser: function () { return DECODED.state.get().user; },
+
+    signOut: function () {
+      try {
+        if (window.google && google.accounts && google.accounts.id) {
+          google.accounts.id.disableAutoSelect();
+        }
+      } catch (e) { /* ignore */ }
+      DECODED.state.clearUser();
+    },
+
+    // Load the Google script on demand, then call cb(ok).
+    load: function (cb) {
+      if (!this.isEnabled()) { cb(false); return; }
+      if (loaded) { cb(true); return; }
+      waiters.push(cb);
+      if (loading) return;
+      loading = true;
+      var s = document.createElement("script");
+      s.src = GIS_SRC;
+      s.async = true;
+      s.defer = true;
+      s.onload = function () { loading = false; flush(true); };
+      s.onerror = function () { loading = false; flush(false); };
+      document.head.appendChild(s);
+    },
+
+    // Render the official Google button into `container`. Calls onUser(user)
+    // after a successful sign-in.
+    renderButton: function (container, onUser) {
+      var self = this;
+      this.load(function (ok) {
+        if (!ok || !window.google || !google.accounts || !google.accounts.id) {
+          container.innerHTML = '<div class="auth-error">Google Sign-In could not load. ' +
+            "Check the Client ID in js/config.js and that this web address is listed as an authorized origin.</div>";
+          return;
+        }
+        google.accounts.id.initialize({
+          client_id: DECODED.config.GOOGLE_CLIENT_ID,
+          callback: function (resp) {
+            var user = self._userFromCredential(resp && resp.credential);
+            if (user) {
+              DECODED.state.setUser(user);
+              if (onUser) onUser(user);
+            }
+          }
+        });
+        container.innerHTML = "";
+        google.accounts.id.renderButton(container, {
+          theme: "filled_black",
+          size: "large",
+          shape: "pill",
+          text: "continue_with",
+          logo_alignment: "left"
+        });
+      });
+    },
+
+    // Decode a Google ID token (JWT) into a small user object.
+    _userFromCredential: function (jwt) {
+      if (!jwt) return null;
+      try {
+        var payload = jwt.split(".")[1];
+        var b64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+        var json = decodeURIComponent(atob(b64).split("").map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(""));
+        var p = JSON.parse(json);
+        return {
+          id: p.sub,
+          email: p.email || "",
+          name: p.name || p.given_name || "Player",
+          firstName: p.given_name || (p.name ? p.name.split(" ")[0] : "Player"),
+          picture: p.picture || ""
+        };
+      } catch (e) {
+        return null;
+      }
+    }
+  };
+})();
+</script>
+<script>
+/* ============================================================================
+   DECODED - LEADERBOARD
+   ----------------------------------------------------------------------------
+   Local for now, seeded from data/copy.js. Architected so a shared backend
+   leaderboard can replace this later: keep the same fetch/add interface and
+   swap the internals for network calls.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+  var KEY = DECODED.config.STORAGE_PREFIX + "leaderboard";
+
+  function load() {
+    try {
+      var raw = localStorage.getItem(KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+    // First run: start from the seed.
+    var seed = DECODED.leaderboardSeed.map(function (e) {
+      return { initials: e.initials, score: e.score, seed: true };
+    });
+    save(seed);
+    return seed;
+  }
+
+  function save(list) {
+    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  function sorted(list) {
+    return list.slice().sort(function (a, b) { return b.score - a.score; });
+  }
+
+  DECODED.leaderboard = {
+    // Returns entries sorted high to low. Async-shaped for a future backend.
+    fetch: function () {
+      return sorted(load());
+    },
+
+    add: function (initials, score) {
+      var list = load();
+      initials = (initials || "YOU").toUpperCase().replace(/[^A-Z]/g, "").slice(0, 4) || "YOU";
+      var entry = { initials: initials, score: score, you: true };
+      list.push(entry);
+      save(list);
+      return sorted(list);
+    }
+  };
+})();
+</script>
+<script>
+/* ============================================================================
+   DECODED - FX (atmosphere and feedback)
+   ----------------------------------------------------------------------------
+   - Moving-code background: faint pseudo-code drifting upward.
+   - Confetti burst on level completion.
+   - Floating "+points" burst on correct answers.
+   All of it respects prefers-reduced-motion (see DECODED.reducedMotion).
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+
+  DECODED.reducedMotion = function () {
+    try {
+      return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    } catch (e) { return false; }
+  };
+
+  /* ---------------------------- Moving code bg ---------------------------- */
+  var CODE_SNIPPETS = [
+    "model.fit(train_data, labels)",
+    "if confidence < 0.7: verify()",
+    "def predict(next_word): ...",
+    "agent.use(tool='search')",
+    "for example in dataset:",
+    "prompt = role + task + format",
+    "loss = cross_entropy(y, y_hat)",
+    "while learning: improve()",
+    "tokens = encode(sentence)",
+    "return most_likely(options)",
+    "data = clean(raw_examples)",
+    "weights += learning_rate * grad",
+    "response = llm.generate(prompt)",
+    "review(output)  # always",
+    "risk = bias or misuse",
+    "value = leverage.aim(goal)"
+  ];
+
+  DECODED.initBackground = function () {
+    var host = document.getElementById("bg-code");
+    if (!host) return;
+    if (DECODED.reducedMotion()) { host.innerHTML = ""; return; }
+
+    var count = window.innerWidth < 640 ? 14 : 26;
+    var html = "";
+    for (var i = 0; i < count; i++) {
+      var text = CODE_SNIPPETS[i % CODE_SNIPPETS.length];
+      var left = Math.round(Math.random() * 96);
+      var dur = 16 + Math.random() * 20;
+      var delay = -Math.random() * dur;
+      var size = 11 + Math.random() * 5;
+      html += '<span class="bg-line" style="left:' + left + '%;' +
+              'animation-duration:' + dur.toFixed(1) + 's;' +
+              'animation-delay:' + delay.toFixed(1) + 's;' +
+              'font-size:' + size.toFixed(0) + 'px;">' + text + '</span>';
+    }
+    host.innerHTML = html;
+  };
+
+  /* ------------------------------ Confetti ------------------------------- */
+  DECODED.confetti = function () {
+    if (DECODED.reducedMotion()) return;
+    var colors = ["#C6FF3A", "#3AE8FF", "#FFB13A", "#F5F7F2", "#8FBE1F"];
+    var layer = document.createElement("div");
+    layer.className = "confetti-layer";
+    document.body.appendChild(layer);
+    var n = 90;
+    for (var i = 0; i < n; i++) {
+      var p = document.createElement("i");
+      p.className = "confetti-bit";
+      p.style.left = Math.random() * 100 + "vw";
+      p.style.background = colors[i % colors.length];
+      p.style.animationDuration = (1.6 + Math.random() * 1.4) + "s";
+      p.style.animationDelay = (Math.random() * 0.3) + "s";
+      p.style.transform = "rotate(" + Math.random() * 360 + "deg)";
+      p.style.width = (6 + Math.random() * 6) + "px";
+      p.style.height = (8 + Math.random() * 8) + "px";
+      layer.appendChild(p);
+    }
+    setTimeout(function () { layer.remove(); }, 3400);
+  };
+
+  /* --------------------------- Floating points --------------------------- */
+  // Shows a "+N" burst near an element (or at given page coords).
+  DECODED.floatPoints = function (text, anchorEl) {
+    var burst = document.createElement("div");
+    burst.className = "points-burst";
+    burst.textContent = text;
+    var x = window.innerWidth / 2, y = window.innerHeight / 2;
+    if (anchorEl && anchorEl.getBoundingClientRect) {
+      var r = anchorEl.getBoundingClientRect();
+      x = r.left + r.width / 2;
+      y = r.top + r.height / 2;
+    }
+    burst.style.left = x + "px";
+    burst.style.top = y + "px";
+    document.body.appendChild(burst);
+    setTimeout(function () { burst.remove(); }, 1100);
+  };
+})();
+</script>
+<script>
+/* ============================================================================
+   DECODED - SHARE CARD
+   ----------------------------------------------------------------------------
+   Draws a 1080x1080 shareable image on a canvas: the player's mascot, the
+   DECODED wordmark, the maker tagline, score, rank, the "I decoded AI. Can you?"
+   line, and where to play free. Used for the live preview, Download, and Share.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+  var SIZE = 1080;
+
+  // Renders the card onto the given canvas. Calls done() when finished
+  // (mascot image loads asynchronously).
+  DECODED.buildShareCard = function (canvas, data, done) {
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+    var ctx = canvas.getContext("2d");
+    var guide = DECODED.guides[data.guide] || DECODED.guides.ada;
+
+    // Background
+    ctx.fillStyle = "#0B0B0C";
+    ctx.fillRect(0, 0, SIZE, SIZE);
+
+    // Panel with border
+    roundRect(ctx, 60, 60, SIZE - 120, SIZE - 120, 36);
+    ctx.fillStyle = "#141417";
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "#2A2A31";
+    ctx.stroke();
+
+    // Accent glow bar at top
+    ctx.fillStyle = guide.color;
+    roundRect(ctx, SIZE / 2 - 60, 96, 120, 8, 4);
+    ctx.fill();
+
+    // Draw mascot (async), then all the text.
+    var svg = DECODED.mascotSVG(guide.id, { animate: false, size: 300 });
+    var img = new Image();
+    var svg64 = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+
+    img.onload = function () { paint(img); };
+    img.onerror = function () { paint(null); };
+    img.src = svg64;
+
+    function paint(mascotImg) {
+      if (mascotImg) {
+        ctx.drawImage(mascotImg, SIZE / 2 - 150, 150, 300, 315);
+      }
+
+      ctx.textAlign = "center";
+
+      // Wordmark
+      ctx.fillStyle = guide.color;
+      ctx.font = "800 120px Inter, Arial, sans-serif";
+      ctx.fillText(DECODED.config.BRAND.productName, SIZE / 2, 590);
+
+      // Maker tagline
+      ctx.fillStyle = "#9A9AA3";
+      ctx.font = "700 30px Inter, Arial, sans-serif";
+      ctx.fillText(DECODED.config.BRAND.tagline, SIZE / 2, 636);
+
+      // Score + rank pill
+      ctx.fillStyle = "#F5F7F2";
+      ctx.font = "800 78px Inter, Arial, sans-serif";
+      ctx.fillText(data.score + " pts", SIZE / 2, 736);
+
+      var rankText = data.rank;
+      ctx.font = "700 40px Inter, Arial, sans-serif";
+      var rw = ctx.measureText(rankText).width + 64;
+      roundRect(ctx, SIZE / 2 - rw / 2, 770, rw, 72, 36);
+      ctx.fillStyle = "#1C1C21";
+      ctx.fill();
+      ctx.strokeStyle = guide.color;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.fillStyle = guide.color;
+      ctx.fillText(rankText, SIZE / 2, 819);
+
+      // Hook line
+      ctx.fillStyle = "#F5F7F2";
+      ctx.font = "800 58px Inter, Arial, sans-serif";
+      ctx.fillText("I decoded AI. Can you?", SIZE / 2, 928);
+
+      // Play free line
+      ctx.fillStyle = "#9A9AA3";
+      ctx.font = "600 34px Inter, Arial, sans-serif";
+      ctx.fillText("Play free at " + DECODED.config.SITE_URL_LABEL, SIZE / 2, 986);
+
+      if (done) done(canvas);
+    }
+  };
+
+  function roundRect(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+})();
+</script>
+<script>
+/* ============================================================================
+   DECODED - ENGINE (the 11 mini-games)
+   ----------------------------------------------------------------------------
+   Each mechanic renders itself into a container and reports progress through a
+   shared "round" context (ctx) provided by app.js:
+     ctx.correct(basePoints, anchorEl)  -> awards points with streak logic
+     ctx.wrong()                        -> resets the streak
+     ctx.award(points, anchorEl)        -> flat bonus, no streak change
+     ctx.finish()                       -> the mini-game is done; show the reveal
+   Adding a new level type means adding one function to DECODED.mechanics.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+  var el = DECODED.dom.el;
+  var clear = DECODED.dom.clear;
+  var icon = DECODED.icon;
+
+  // Small inline feedback marker (check / cross) that reads with the text.
+  function fbMark(good) {
+    return '<span class="fb-mark">' + icon(good ? "check-circle" : "xmark-circle") + '</span> ';
+  }
+
+  DECODED.mechanics = {};
+
+  /* ======================================================================
+     Shared: a step-by-step quiz used by several levels
+     (sort-binary, true-false, judge-scenarios, multiple-choice).
+     `questions` is a normalized list: { prompt, options:[{key,label,icon}],
+     correct, why }.
+  ====================================================================== */
+  function runQuiz(container, ctx, level, questions) {
+    var i = 0, correctCount = 0;
+    var stage = el("div", "quiz-stage");
+    container.appendChild(stage);
+
+    function progressText() {
+      return "Question " + (i + 1) + " of " + questions.length;
+    }
+
+    function renderQuestion() {
+      clear(stage);
+      var q = questions[i];
+
+      var card = el("div", "card fade-up");
+      card.appendChild(el("div", "quiz-count", progressText()));
+      card.appendChild(el("div", "quiz-prompt", q.prompt));
+
+      var opts = el("div", "options");
+      var buttons = [];
+      q.options.forEach(function (opt) {
+        var btn = el("button", "option-btn", null, {
+          type: "button",
+          "aria-label": opt.plain || opt.label
+        });
+        btn.appendChild(el("span", "opt-icon", opt.icon ? DECODED.icon(opt.icon) : ""));
+        btn.appendChild(el("span", "opt-label", opt.label));
+        btn.addEventListener("click", function () { choose(opt.key, btn, buttons, q); });
+        buttons.push(btn);
+        opts.appendChild(btn);
+      });
+      card.appendChild(opts);
+
+      var feedback = el("div", "feedback", "", { "aria-live": "polite" });
+      card.appendChild(feedback);
+
+      stage.appendChild(card);
+      DECODED.dom.stagger(buttons, 55);
+    }
+
+    function choose(key, btn, buttons, q) {
+      buttons.forEach(function (b) { b.disabled = true; });
+      var feedback = stage.querySelector(".feedback");
+      var right = key === q.correct;
+
+      if (right) {
+        btn.classList.add("correct");
+        correctCount++;
+        ctx.correct(level.points, btn);
+      } else {
+        btn.classList.add("wrong");
+        ctx.wrong();
+        // Also highlight the correct one.
+        buttons.forEach(function (b) {
+          if (b.getAttribute("data-key") === q.correct) b.classList.add("correct");
+        });
+        var correctBtn = buttons[keyIndex(q, q.correct)];
+        if (correctBtn) correctBtn.classList.add("correct");
+      }
+
+      feedback.className = "feedback show " + (right ? "good" : "bad");
+      feedback.innerHTML =
+        '<div class="fb-head">' + fbMark(right) + (right ? "Nice" : "Not quite") + '</div>' +
+        '<div class="fb-why">' + q.why + '</div>';
+
+      var last = i === questions.length - 1;
+      var next = el("button", "btn primary next-btn",
+        last ? "See what this means" : "Continue", { type: "button" });
+      next.addEventListener("click", function () {
+        if (last) { ctx.finish({ correct: correctCount, total: questions.length }); }
+        else { i++; renderQuestion(); }
+      });
+      feedback.appendChild(next);
+      next.focus();
+    }
+
+    function keyIndex(q, key) {
+      for (var k = 0; k < q.options.length; k++) {
+        if (q.options[k].key === key) return k;
+      }
+      return -1;
+    }
+
+    // Tag buttons with their key so we can find the correct one after a wrong pick.
+    var origRender = renderQuestion;
+    renderQuestion = function () {
+      origRender();
+      var btns = stage.querySelectorAll(".option-btn");
+      var q = questions[i];
+      for (var k = 0; k < btns.length; k++) btns[k].setAttribute("data-key", q.options[k].key);
+    };
+
+    renderQuestion();
+  }
+
+  /* ---------- LEVEL 1: sort-binary ---------- */
+  DECODED.mechanics["sort-binary"] = function (level, container, ctx) {
+    var questions = level.items.map(function (item) {
+      return {
+        prompt: '<span class="big-icon">' + icon(item.icon, { size: 52 }) + '</span>' +
+                '<span class="prompt-label">' + item.label + '</span>',
+        options: level.options,
+        correct: item.answer,
+        why: item.why
+      };
+    });
+    runQuiz(container, ctx, level, questions);
+  };
+
+  /* ---------- LEVEL 4: true-false ---------- */
+  DECODED.mechanics["true-false"] = function (level, container, ctx) {
+    var questions = level.statements.map(function (s) {
+      return {
+        prompt: '<span class="statement">' + s.text + '</span>',
+        options: level.options,
+        correct: s.answer,
+        why: s.why
+      };
+    });
+    runQuiz(container, ctx, level, questions);
+  };
+
+  /* ---------- LEVEL 8: judge-scenarios ---------- */
+  DECODED.mechanics["judge-scenarios"] = function (level, container, ctx) {
+    var questions = level.scenarios.map(function (s) {
+      return {
+        prompt: '<span class="statement">' + s.text + '</span>',
+        options: level.options,
+        correct: s.answer,
+        why: s.why
+      };
+    });
+    runQuiz(container, ctx, level, questions);
+  };
+
+  /* ---------- LEVELS 9,10,11: multiple-choice ---------- */
+  DECODED.mechanics["multiple-choice"] = function (level, container, ctx) {
+    var questions = level.questions.map(function (q) {
+      return {
+        prompt: '<span class="statement">' + q.scenario + '</span>',
+        options: q.options.map(function (label, idx) {
+          return { key: String(idx), label: label, icon: "nav-arrow-right", plain: label };
+        }),
+        correct: String(q.answer),
+        why: q.why
+      };
+    });
+    runQuiz(container, ctx, level, questions);
+  };
+
+  /* ---------- LEVEL 2: train-model ---------- */
+  DECODED.mechanics["train-model"] = function (level, container, ctx) {
+    var i = 0, correctCount = 0;
+    var stage = el("div", "quiz-stage");
+    container.appendChild(stage);
+
+    function renderLabel() {
+      clear(stage);
+      var item = level.training[i];
+      var card = el("div", "card fade-up");
+      card.appendChild(el("div", "quiz-count", "Training example " + (i + 1) + " of " + level.training.length));
+      card.appendChild(el("div", "quiz-prompt", '<span class="big-icon">' + icon(item.icon, { size: 52 }) + '</span><span class="prompt-label">What is this?</span>'));
+
+      var opts = el("div", "options");
+      var buttons = [];
+      level.labels.forEach(function (lab) {
+        var btn = el("button", "option-btn", null, { type: "button" });
+        btn.appendChild(el("span", "opt-icon", icon(lab.icon)));
+        btn.appendChild(el("span", "opt-label", lab.label));
+        btn.addEventListener("click", function () { pick(lab.key, btn, buttons, item); });
+        buttons.push(btn);
+        opts.appendChild(btn);
+      });
+      card.appendChild(opts);
+      card.appendChild(el("div", "feedback", "", { "aria-live": "polite" }));
+      stage.appendChild(card);
+      DECODED.dom.stagger(buttons, 55);
+    }
+
+    function pick(key, btn, buttons, item) {
+      buttons.forEach(function (b) { b.disabled = true; });
+      var right = key === item.truth;
+      var feedback = stage.querySelector(".feedback");
+      if (right) { btn.classList.add("correct"); correctCount++; ctx.correct(level.points, btn); }
+      else { btn.classList.add("wrong"); ctx.wrong(); }
+
+      feedback.className = "feedback show " + (right ? "good" : "bad");
+      feedback.innerHTML = '<div class="fb-head">' + fbMark(right) + (right ? "Labeled" : "Mislabeled") + '</div>' +
+        '<div class="fb-why">' + (right ? "Clean label. That is good training data." : "A wrong label teaches the model the wrong thing.") + '</div>';
+
+      var last = i === level.training.length - 1;
+      var next = el("button", "btn primary next-btn", last ? "Test the model" : "Next example", { type: "button" });
+      next.addEventListener("click", function () { if (last) runTest(); else { i++; renderLabel(); } });
+      feedback.appendChild(next);
+      next.focus();
+    }
+
+    function runTest() {
+      clear(stage);
+      var accuracy = correctCount / level.training.length;
+      var numRight = Math.round(level.testing.length * accuracy);
+      var card = el("div", "card fade-up");
+      card.appendChild(el("div", "quiz-count", "Your model takes the test"));
+      card.appendChild(el("div", "quiz-prompt",
+        '<span class="prompt-label">You labeled ' + correctCount + ' of ' + level.training.length +
+        ' correctly. Here is how well the model learned.</span>'));
+
+      var grid = el("div", "test-grid");
+      card.appendChild(grid);
+      stage.appendChild(card);
+
+      // Decide which test items the model gets right (first numRight get correct predictions).
+      var results = level.testing.map(function (t, idx) {
+        return { item: t, modelRight: idx < numRight };
+      });
+
+      var done = el("div", "feedback", "", { "aria-live": "polite" });
+      card.appendChild(done);
+
+      // The "other" label for a wrong prediction (works for any two labels).
+      function otherLabel(truth) {
+        var o = level.labels.filter(function (l) { return l.key !== truth; })[0];
+        return o ? o.key : truth;
+      }
+
+      var d = 0;
+      results.forEach(function (r, idx) {
+        setTimeout(function () {
+          var pred = r.modelRight ? r.item.truth : otherLabel(r.item.truth);
+          var predLabel = level.labels.filter(function (l) { return l.key === pred; })[0];
+          var cell = el("div", "test-cell pop-in " + (r.modelRight ? "good" : "bad"));
+          cell.innerHTML = '<span class="big-icon">' + icon(r.item.icon, { size: 40 }) + '</span>' +
+            '<span class="test-pred">Model says: ' + predLabel.label + '</span>' +
+            '<span class="test-mark">' + icon(r.modelRight ? "check-circle" : "xmark-circle", { size: 20 }) + '</span>';
+          grid.appendChild(cell);
+          if (idx === results.length - 1) {
+            done.className = "feedback show " + (accuracy >= 0.75 ? "good" : "bad");
+            done.innerHTML = '<div class="fb-head">Model accuracy: ' + Math.round(accuracy * 100) + '%</div>' +
+              '<div class="fb-why">' + (accuracy >= 0.75
+                ? "Clean labels, sharp model. This is what good data buys you."
+                : "Messy labels, shaky model. The data, not the model, was the problem.") + '</div>';
+            var next = el("button", "btn primary next-btn", "See what this means", { type: "button" });
+            next.addEventListener("click", function () { ctx.finish({ correct: correctCount, total: level.training.length }); });
+            done.appendChild(next);
+            next.focus();
+          }
+        }, d);
+        d += 650;
+      });
+    }
+
+    renderLabel();
+  };
+
+  /* ---------- LEVEL 3: next-word ---------- */
+  DECODED.mechanics["next-word"] = function (level, container, ctx) {
+    var i = 0, matchCount = 0;
+    var stage = el("div", "quiz-stage");
+    container.appendChild(stage);
+
+    function render() {
+      clear(stage);
+      var round = level.rounds[i];
+      var top = round.options.slice().sort(function (a, b) { return b.p - a.p; })[0].word;
+
+      var card = el("div", "card fade-up");
+      card.appendChild(el("div", "quiz-count", "Sentence " + (i + 1) + " of " + level.rounds.length));
+      card.appendChild(el("div", "quiz-prompt",
+        '<span class="statement">' + round.stub.replace("___", '<span class="blank">?</span>') + '</span>'));
+
+      var opts = el("div", "options word-options");
+      var buttons = [];
+      round.options.forEach(function (o) {
+        var btn = el("button", "option-btn word-btn", '<span class="opt-label">' + o.word + '</span>', { type: "button" });
+        btn.addEventListener("click", function () { pick(o.word, top, round, buttons, card); });
+        buttons.push(btn);
+        opts.appendChild(btn);
+      });
+      card.appendChild(opts);
+      card.appendChild(el("div", "feedback", "", { "aria-live": "polite" }));
+      stage.appendChild(card);
+      DECODED.dom.stagger(buttons, 55);
+    }
+
+    function pick(word, top, round, buttons, card) {
+      buttons.forEach(function (b) { b.disabled = true; });
+      var matched = word === top;
+      if (matched) { matchCount++; ctx.correct(level.points, card); } else ctx.wrong();
+
+      // Reveal probability bars.
+      var bars = el("div", "prob-bars");
+      round.options.slice().sort(function (a, b) { return b.p - a.p; }).forEach(function (o) {
+        var row = el("div", "prob-row" + (o.word === top ? " top" : "") + (o.word === word ? " picked" : ""));
+        row.innerHTML = '<span class="prob-word">' + o.word + (o.word === word ? ' <span class="you-pick">you</span>' : "") + '</span>' +
+          '<span class="prob-track"><span class="prob-fill" style="width:0%"></span></span>' +
+          '<span class="prob-pct">' + Math.round(o.p * 100) + '%</span>';
+        bars.appendChild(row);
+        setTimeout(function () {
+          row.querySelector(".prob-fill").style.width = Math.round(o.p * 100) + "%";
+        }, 30);
+      });
+      card.appendChild(bars);
+
+      var feedback = card.querySelector(".feedback");
+      feedback.className = "feedback show " + (matched ? "good" : "bad");
+      feedback.innerHTML = '<div class="fb-head">' + fbMark(matched) + (matched ? "You matched the AI" : "AI went with " + top) + '</div>' +
+        '<div class="fb-why">The AI leans toward the highest bar. You picked ' + word + '.</div>';
+
+      var last = i === level.rounds.length - 1;
+      var next = el("button", "btn primary next-btn", last ? "See what this means" : "Next sentence", { type: "button" });
+      next.addEventListener("click", function () { if (last) ctx.finish({ correct: matchCount, total: level.rounds.length }); else { i++; render(); } });
+      feedback.appendChild(next);
+      next.focus();
+    }
+
+    render();
+  };
+
+  /* ---------- LEVEL 5: prompt-upgrade ---------- */
+  DECODED.mechanics["prompt-upgrade"] = function (level, container, ctx) {
+    var awarded = {};   // which upgrades already earned points
+    var active = {};    // which upgrades are currently on
+    var bonusGiven = false;
+
+    var card = el("div", "card fade-up");
+    card.appendChild(el("div", "quiz-count", "Upgrade the prompt"));
+
+    // Live preview
+    var preview = el("div", "prompt-preview");
+    card.appendChild(preview);
+
+    // Quality meter
+    var meterWrap = el("div", "meter-wrap");
+    meterWrap.innerHTML = '<div class="meter-label"><span>Prompt quality</span><span class="meter-count">0 of 4 upgrades</span></div>' +
+      '<div class="meter-track"><span class="meter-fill" style="width:8%"></span></div>';
+    card.appendChild(meterWrap);
+
+    // Chips
+    var chips = el("div", "chips");
+    var chipButtons = [];
+    level.upgrades.forEach(function (up) {
+      var btn = el("button", "chip", null, { type: "button", "aria-pressed": "false" });
+      btn.appendChild(el("span", "chip-icon", icon(up.icon)));
+      btn.appendChild(el("span", "chip-text", up.chip));
+      btn.addEventListener("click", function () { toggle(up, btn); });
+      chipButtons.push(btn);
+      chips.appendChild(btn);
+    });
+    card.appendChild(chips);
+
+    var feedback = el("div", "feedback", "", { "aria-live": "polite" });
+    card.appendChild(feedback);
+
+    container.appendChild(card);
+    DECODED.dom.stagger(chipButtons, 60);
+    renderPreview();
+
+    function toggle(up, btn) {
+      active[up.key] = !active[up.key];
+      btn.classList.toggle("on", active[up.key]);
+      btn.setAttribute("aria-pressed", active[up.key] ? "true" : "false");
+
+      if (active[up.key] && !awarded[up.key]) {
+        awarded[up.key] = true;
+        ctx.correct(level.points, btn);
+      }
+      renderPreview();
+      checkComplete();
+    }
+
+    function renderPreview() {
+      var lines = ['<span class="pp-base">' + level.basePrompt + '</span>'];
+      level.upgrades.forEach(function (up) {
+        if (active[up.key]) lines.push('<span class="pp-add">' + up.text + '</span>');
+      });
+      preview.innerHTML = lines.join("");
+
+      var count = level.upgrades.filter(function (u) { return active[u.key]; }).length;
+      meterWrap.querySelector(".meter-count").textContent = count + " of 4 upgrades";
+      meterWrap.querySelector(".meter-fill").style.width = (8 + (count / 4) * 92) + "%";
+    }
+
+    function checkComplete() {
+      var allOn = level.upgrades.every(function (u) { return active[u.key]; });
+      if (allOn && !bonusGiven) {
+        bonusGiven = true;
+        ctx.award(level.completionBonus, meterWrap);
+        feedback.className = "feedback show good";
+        feedback.innerHTML = '<div class="fb-head">' + fbMark(true) + 'Four of four. Prompt maxed out.</div>' +
+          '<div class="fb-why">Plus a ' + level.completionBonus + ' point bonus for the full upgrade.</div>';
+        var next = el("button", "btn primary next-btn", "See what this means", { type: "button" });
+        next.addEventListener("click", function () { ctx.finish(); });
+        feedback.appendChild(next);
+        next.focus();
+      }
+    }
+  };
+
+  /* ---------- LEVEL 6: agent-tools ---------- */
+  DECODED.mechanics["agent-tools"] = function (level, container, ctx) {
+    var equipped = {};
+
+    var card = el("div", "card fade-up");
+    card.appendChild(el("div", "quiz-count", "The goal"));
+    card.appendChild(el("div", "goal-box", '<span class="goal-icon">' + icon("star") + '</span>' + level.goal));
+
+    var toolWrap = el("div", "tool-grid");
+    var toolButtons = [];
+    level.tools.forEach(function (t) {
+      var btn = el("button", "tool-btn", null, { type: "button", "aria-pressed": "false" });
+      btn.appendChild(el("span", "tool-icon", icon(t.icon, { size: 28 })));
+      btn.appendChild(el("span", "tool-label", t.label));
+      btn.addEventListener("click", function () {
+        equipped[t.key] = !equipped[t.key];
+        btn.classList.toggle("on", equipped[t.key]);
+        btn.setAttribute("aria-pressed", equipped[t.key] ? "true" : "false");
+      });
+      toolButtons.push(btn);
+      toolWrap.appendChild(btn);
+    });
+    card.appendChild(el("div", "tool-hint", "Equip the tools your agent needs, then run it."));
+    card.appendChild(toolWrap);
+
+    var runBtn = el("button", "btn primary run-btn", '<span class="btn-ic">' + icon("play") + '</span>Run agent', { type: "button" });
+    card.appendChild(runBtn);
+
+    var log = el("div", "agent-log", "", { "aria-live": "polite" });
+    card.appendChild(log);
+
+    var feedback = el("div", "feedback", "", { "aria-live": "polite" });
+    card.appendChild(feedback);
+
+    container.appendChild(card);
+    DECODED.dom.stagger(toolButtons, 60);
+
+    runBtn.addEventListener("click", run);
+
+    function run() {
+      clear(log);
+      clear(feedback);
+      feedback.className = "feedback";
+      runBtn.disabled = true;
+
+      var extraCalc = equipped.calculator;
+      var lines = level.steps.map(function (s) {
+        return { text: equipped[s.need] ? s.ok : s.fail, ok: !!equipped[s.need] };
+      });
+
+      var d = 0;
+      lines.forEach(function (ln, idx) {
+        setTimeout(function () {
+          var row = el("div", "log-line pop-in " + (ln.ok ? "ok" : "stall"));
+          row.innerHTML = '<span class="log-mark">' + icon(ln.ok ? "check-circle" : "xmark-circle", { size: 18 }) + '</span>' + ln.text;
+          log.appendChild(row);
+          if (idx === lines.length - 1) finishRun(lines, extraCalc);
+        }, d);
+        d += 700;
+      });
+    }
+
+    function finishRun(lines, extraCalc) {
+      var allOk = lines.every(function (l) { return l.ok; });
+      var perfectKit = allOk && !extraCalc;
+
+      if (extraCalc) {
+        var calcRow = el("div", "log-line stall pop-in",
+          '<span class="log-mark">' + icon("xmark-circle", { size: 18 }) + '</span>Calculator sat unused. This task never needed it.');
+        log.appendChild(calcRow);
+      }
+
+      if (perfectKit) {
+        ctx.award(level.bonus, runBtn);
+        feedback.className = "feedback show good";
+        feedback.innerHTML = '<div class="fb-head">' + fbMark(true) + 'Goal complete. Perfect kit.</div>' +
+          '<div class="fb-why">Search, Calendar, and Email, nothing wasted. Plus a ' + level.bonus + ' point bonus.</div>';
+        var next = el("button", "btn primary next-btn", "See what this means", { type: "button" });
+        next.addEventListener("click", function () { ctx.finish(); });
+        feedback.appendChild(next);
+        next.focus();
+      } else {
+        ctx.wrong();
+        feedback.className = "feedback show bad";
+        feedback.innerHTML = '<div class="fb-head">' + fbMark(false) + 'Not quite the right kit</div>' +
+          '<div class="fb-why">' + (extraCalc
+            ? "Drop the Calculator and make sure Search, Calendar, and Email are all on."
+            : "Your agent stalled. Give it every tool the goal needs, then run again.") + '</div>';
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<span class="btn-ic">' + icon("refresh-double") + '</span>Run again';
+        runBtn.focus();
+      }
+    }
+  };
+
+  /* ---------- LEVEL 7: order-steps ---------- */
+  DECODED.mechanics["order-steps"] = function (level, container, ctx) {
+    var target = level.steps.slice().sort(function (a, b) { return a.order - b.order; });
+    var pool = shuffle(level.steps.slice());
+    // Avoid an accidentally-correct starting shuffle.
+    if (isSorted(pool)) pool = shuffle(pool.slice());
+    var placed = [];
+
+    var card = el("div", "card fade-up");
+    card.appendChild(el("div", "quiz-count", "Put the steps in order"));
+    card.appendChild(el("div", "order-hint", "Tap the steps in the order they should happen, top to bottom."));
+
+    var slots = el("ol", "order-slots");
+    card.appendChild(slots);
+
+    var poolWrap = el("div", "order-pool");
+    card.appendChild(poolWrap);
+
+    var actions = el("div", "order-actions");
+    var resetBtn = el("button", "btn ghost", "Reset", { type: "button" });
+    actions.appendChild(resetBtn);
+    card.appendChild(actions);
+
+    var feedback = el("div", "feedback", "", { "aria-live": "polite" });
+    card.appendChild(feedback);
+
+    container.appendChild(card);
+    resetBtn.addEventListener("click", reset);
+    renderPool();
+    renderSlots();
+
+    function renderPool() {
+      clear(poolWrap);
+      var buttons = [];
+      pool.forEach(function (step) {
+        if (placed.indexOf(step) !== -1) return;
+        var btn = el("button", "step-chip", '<span class="step-icon">' + icon(step.icon, { size: 22 }) + '</span>' + step.text, { type: "button" });
+        btn.addEventListener("click", function () { place(step); });
+        buttons.push(btn);
+        poolWrap.appendChild(btn);
+      });
+      DECODED.dom.stagger(buttons, 50);
+    }
+
+    function renderSlots() {
+      clear(slots);
+      for (var s = 0; s < target.length; s++) {
+        var li = el("li", "order-slot");
+        if (placed[s]) {
+          li.classList.add("filled");
+          li.innerHTML = '<span class="slot-num">' + (s + 1) + '</span>' +
+            '<span class="step-icon">' + icon(placed[s].icon, { size: 22 }) + '</span>' + placed[s].text;
+        } else {
+          li.innerHTML = '<span class="slot-num">' + (s + 1) + '</span><span class="slot-empty">Tap a step below</span>';
+        }
+        slots.appendChild(li);
+      }
+    }
+
+    function place(step) {
+      placed.push(step);
+      renderPool();
+      renderSlots();
+      if (placed.length === target.length) check();
+    }
+
+    function reset() {
+      placed = [];
+      feedback.className = "feedback";
+      feedback.innerHTML = "";
+      renderPool();
+      renderSlots();
+    }
+
+    function check() {
+      var correct = 0;
+      var lis = slots.querySelectorAll(".order-slot");
+      for (var s = 0; s < target.length; s++) {
+        var right = placed[s].order === target[s].order;
+        if (right) { correct++; lis[s].classList.add("good"); }
+        else { lis[s].classList.add("bad"); }
+      }
+      if (correct > 0) ctx.correct(level.points * correct, slots); else ctx.wrong();
+
+      feedback.className = "feedback show " + (correct === target.length ? "good" : "bad");
+      feedback.innerHTML = '<div class="fb-head">' + fbMark(correct === target.length) + (correct === target.length
+        ? "Perfect order" : "You placed " + correct + " of " + target.length + " correctly") + '</div>' +
+        '<div class="fb-why">The right flow is: describe, AI writes, run it, then refine.</div>';
+
+      var next = el("button", "btn primary next-btn", "See what this means", { type: "button" });
+      next.addEventListener("click", function () { ctx.finish({ correct: correct, total: target.length }); });
+      feedback.appendChild(next);
+      resetBtn.disabled = true;
+      next.focus();
+    }
+  };
+
+  /* -------------------------- small utilities -------------------------- */
+  function shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+  function isSorted(arr) {
+    for (var i = 1; i < arr.length; i++) if (arr[i].order < arr[i - 1].order) return false;
+    return true;
+  }
+})();
+</script>
+<script>
+/* ============================================================================
+   DECODED - APP
+   ----------------------------------------------------------------------------
+   Screen flow, HUD, per-level scoring context, reveals, certificate,
+   leaderboard, and growth features. This is the orchestration layer; the
+   mini-games themselves live in engine.js and the content in js/data/*.
+   ============================================================================ */
+
+window.DECODED = window.DECODED || {};
+
+(function () {
+  var el = DECODED.dom.el;
+  var clear = DECODED.dom.clear;
+  var S = DECODED.state;
+  var icon = DECODED.icon;
+
+  // Leading icon: sits inside a button/label, before its text.
+  function ic(name, size) { return '<span class="ui-ic">' + icon(name, { size: size || 18 }) + '</span>'; }
+  // Trailing icon: after the text.
+  function ic2(name, size) { return '<span class="ui-ic ui-ic-r">' + icon(name, { size: size || 18 }) + '</span>'; }
+
+  var root, hud;
+
+  DECODED.app = {
+    init: function () {
+      root = document.getElementById("screen");
+      hud = document.getElementById("hud");
+      applyTheme(S.get().theme);
+      wireThemeToggle();
+      DECODED.initBackground();
+      renderHeader();
+      var st = S.get();
+      // When Google sign-in is required, gate everything behind it.
+      if (DECODED.auth.isRequired() && !DECODED.auth.getUser()) {
+        screenSignIn();
+      } else if (!st.guide) {
+        screenSplash();
+      } else {
+        screenHome();
+      }
+      updateHud();
+    }
+  };
+
+  // Where to go once the player is signed in (or when no sign-in is needed).
+  function enterGame() {
+    renderHeader();
+    updateHud();
+    if (!S.get().guide) screenSplash();
+    else screenHome();
+  }
+
+  /* ------------------------------ Theme --------------------------------- */
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    var btn = document.getElementById("theme-toggle");
+    if (btn) {
+      // Show the icon for the theme you would switch TO.
+      var toDark = theme === "light";
+      btn.innerHTML = icon(toDark ? "half-moon" : "sun-light", { size: 20 });
+      btn.setAttribute("aria-label", toDark ? "Switch to dark theme" : "Switch to light theme");
+    }
+  }
+  function wireThemeToggle() {
+    var btn = document.getElementById("theme-toggle");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var next = S.get().theme === "dark" ? "light" : "dark";
+      S.setTheme(next);
+      applyTheme(next);
+    });
+  }
+
+  /* ------------------------------ Header -------------------------------- */
+  function renderHeader() {
+    var header = document.getElementById("brandbar");
+    clear(header);
+    // Header logo is always Ada (green).
+    var logo = el("a", "brand", null, { href: "#", "aria-label": "Decoded home" });
+    logo.innerHTML = '<span class="brand-mascot">' +
+      DECODED.mascotSVG("ada", { size: 40, animate: !DECODED.reducedMotion() }) + '</span>' +
+      '<span class="brand-word">' + DECODED.config.BRAND.productName + '</span>';
+    logo.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (S.get().guide) screenHome(); else screenSplash();
+    });
+    header.appendChild(logo);
+    renderAccount();
+  }
+
+  // The signed-in player's chip (avatar + sign out). Only shows when signed in.
+  function renderAccount() {
+    var box = document.getElementById("account");
+    if (!box) return;
+    clear(box);
+    var user = DECODED.auth.getUser();
+    if (!user) { box.hidden = true; return; }
+    box.hidden = false;
+
+    var chip = el("button", "account-chip", null, {
+      type: "button",
+      title: "Signed in as " + user.name + ". Click to sign out.",
+      "aria-label": "Signed in as " + user.name + ". Click to sign out."
+    });
+    var avatar = user.picture
+      ? '<img class="account-avatar" src="' + user.picture + '" alt="" referrerpolicy="no-referrer">'
+      : '<span class="account-avatar account-initial">' + (user.firstName || "?").charAt(0).toUpperCase() + '</span>';
+    chip.innerHTML = avatar + '<span class="account-name">' + user.firstName + '</span>';
+    chip.addEventListener("click", function () {
+      if (confirm("Sign out of Decoded?")) {
+        DECODED.auth.signOut();
+        renderHeader();
+        updateHud();
+        if (DECODED.auth.isRequired()) screenSignIn();
+        else if (S.get().guide) screenHome();
+        else screenSplash();
+      }
+    });
+    box.appendChild(chip);
+  }
+
+  /* ------------------------------ Sign in ------------------------------- */
+  function screenSignIn() {
+    clear(root);
+    hud.hidden = true;
+    var box = document.getElementById("account");
+    if (box) { clear(box); box.hidden = true; }
+
+    var name = DECODED.config.BRAND.productName;
+    var wrap = el("div", "screen-center fade-up");
+    wrap.innerHTML =
+      '<div class="hero-mascot">' + DECODED.mascotSVG("ada", { size: 160, animate: !DECODED.reducedMotion() }) + '</div>' +
+      '<h1 class="wordmark glitch" data-text="' + name + '">' + name + '</h1>' +
+      '<div class="wordmark-sub">' + DECODED.config.BRAND.tagline + '</div>' +
+      '<p class="lead">Create your free account to start playing. Your progress is saved to you.</p>';
+
+    var btnWrap = el("div", "auth-btn-wrap");
+    btnWrap.innerHTML = '<div class="auth-loading">Loading sign-in...</div>';
+    wrap.appendChild(btnWrap);
+
+    wrap.appendChild(el("p", "auth-note",
+      "We use Google so you never need another password. We only see your name and email, and only use them to save your progress."));
+
+    root.appendChild(wrap);
+
+    DECODED.auth.renderButton(btnWrap, function () {
+      enterGame();
+    });
+  }
+
+  /* -------------------------------- HUD --------------------------------- */
+  function updateHud() {
+    var st = S.get();
+    if (!st.guide) { hud.hidden = true; return; }
+    hud.hidden = false;
+    clear(hud);
+    hud.appendChild(el("span", "hud-item", ic("star") + st.score, { title: "Score" }));
+    if (st.streak >= 2) {
+      hud.appendChild(el("span", "hud-item flame", ic("fire-flame") + st.streak, { title: "Streak" }));
+    }
+    hud.appendChild(el("span", "hud-item", ic("check-circle") + st.completed.length + " / " + DECODED.levels.length, { title: "Levels done" }));
+  }
+
+  /* --------------------- Per-level scoring context ---------------------- */
+  function makeContext(level, onFinish) {
+    return {
+      correct: function (basePoints, anchorEl) {
+        var streak = S.bumpStreak();
+        var pts = streak >= 3 ? Math.round(basePoints * 1.5) : basePoints;
+        S.addScore(pts);
+        DECODED.floatPoints("+" + pts, anchorEl);
+        updateHud();
+        return pts;
+      },
+      wrong: function () {
+        S.resetStreak();
+        updateHud();
+      },
+      award: function (points, anchorEl) {
+        S.addScore(points);
+        DECODED.floatPoints("+" + points, anchorEl);
+        updateHud();
+      },
+      // result is optional: { correct, total }. Used to decide pass/fail.
+      finish: function (result) { onFinish(result); }
+    };
+  }
+
+  /* ------------------------------ Splash -------------------------------- */
+  function screenSplash() {
+    clear(root);
+    hud.hidden = true;
+    var wrap = el("div", "screen-center fade-up");
+    wrap.innerHTML =
+      '<div class="hero-mascot">' + DECODED.mascotSVG("ada", { size: 180, animate: !DECODED.reducedMotion() }) + '</div>' +
+      '<h1 class="wordmark glitch" data-text="' + DECODED.config.BRAND.productName + '">' + DECODED.config.BRAND.productName + '</h1>' +
+      '<div class="wordmark-sub">' + DECODED.config.BRAND.tagline + '</div>' +
+      '<p class="lead">' + DECODED.copy.splashIntro + '</p>';
+    var start = el("button", "btn primary big", "Start", { type: "button" });
+    start.addEventListener("click", screenGuidePicker);
+    wrap.appendChild(start);
+    root.appendChild(wrap);
+    start.focus();
+  }
+
+  /* --------------------------- Guide picker ----------------------------- */
+  function screenGuidePicker() {
+    clear(root);
+    hud.hidden = true;
+    var selected = S.get().guide || null;
+
+    var wrap = el("div", "screen-pad fade-up");
+    wrap.appendChild(el("h2", "screen-title", DECODED.copy.guidePickTitle));
+    wrap.appendChild(el("p", "screen-sub", DECODED.copy.guidePickSub));
+
+    var cards = el("div", "guide-cards");
+    ["ada", "leo"].forEach(function (id) {
+      var g = DECODED.guides[id];
+      var card = el("button", "guide-card" + (selected === id ? " selected" : ""), null, {
+        type: "button", "aria-pressed": selected === id ? "true" : "false"
+      });
+      card.innerHTML =
+        '<div class="guide-mascot">' + DECODED.mascotSVG(id, { size: 130, animate: !DECODED.reducedMotion() }) + '</div>' +
+        '<div class="guide-name" style="color:' + g.color + '">' + g.name + '</div>' +
+        '<div class="guide-pers">' + g.personality + '</div>';
+      card.addEventListener("click", function () {
+        selected = id;
+        var all = cards.querySelectorAll(".guide-card");
+        for (var k = 0; k < all.length; k++) {
+          all[k].classList.remove("selected");
+          all[k].setAttribute("aria-pressed", "false");
+        }
+        card.classList.add("selected");
+        card.setAttribute("aria-pressed", "true");
+        go.disabled = false;
+      });
+      cards.appendChild(card);
+    });
+    wrap.appendChild(cards);
+
+    var go = el("button", "btn primary big", "Let's go", { type: "button" });
+    go.disabled = !selected;
+    go.addEventListener("click", function () {
+      if (!selected) return;
+      S.setGuide(selected);
+      updateHud();
+      screenHome();
+    });
+    wrap.appendChild(go);
+    root.appendChild(wrap);
+  }
+
+  /* ----------------------------- Home map ------------------------------- */
+  function screenHome() {
+    clear(root);
+    updateHud();
+    var st = S.get();
+    var guide = DECODED.guides[st.guide] || DECODED.guides.ada;
+
+    var wrap = el("div", "screen-pad fade-up");
+
+    // Hero panel: mascot + speech bubble
+    var hero = el("div", "home-hero");
+    hero.innerHTML =
+      '<div class="hero-mascot small" style="--gc:' + guide.color + '">' +
+        DECODED.mascotSVG(guide.id, { size: 120, animate: !DECODED.reducedMotion() }) + '</div>' +
+      '<div class="speech" style="--gc:' + guide.color + '">' + bubbleForProgress(st, guide) + '</div>';
+    wrap.appendChild(hero);
+
+    // XP / knowledge bar
+    var rank = DECODED.rankForScore(st.score);
+    var pct = Math.min(100, Math.round((st.score / DECODED.XP_TARGET) * 100));
+    var xp = el("div", "xp-panel");
+    xp.innerHTML =
+      '<div class="xp-top"><span class="rank-pill" style="--gc:' + guide.color + '">' + ic(rank.icon) + rank.name + '</span>' +
+      '<span class="xp-score">' + st.score + ' / ' + DECODED.XP_TARGET + ' XP</span></div>' +
+      '<div class="meter-track"><span class="meter-fill" style="width:' + pct + '%"></span></div>';
+    wrap.appendChild(xp);
+
+    // Toolbar
+    var bar = el("div", "home-bar");
+    var lbBtn = el("button", "btn ghost", ic("trophy") + "Leaderboard", { type: "button" });
+    lbBtn.addEventListener("click", screenLeaderboard);
+    var switchBtn = el("button", "link-btn", "Switch guide", { type: "button" });
+    switchBtn.addEventListener("click", screenGuidePicker);
+    bar.appendChild(lbBtn);
+    bar.appendChild(switchBtn);
+    wrap.appendChild(bar);
+
+    // Levels grouped by chapter
+    DECODED.chapters.forEach(function (ch) {
+      var levels = DECODED.levels.filter(function (l) { return l.chapter === ch.id; });
+      if (!levels.length) return;
+      wrap.appendChild(el("h3", "chapter-title", ch.name));
+      var list = el("div", "level-list");
+      levels.forEach(function (lv) {
+        list.appendChild(levelRow(lv));
+      });
+      wrap.appendChild(list);
+    });
+
+    // Certificate access once all done
+    if (st.completed.length === DECODED.levels.length) {
+      var certBtn = el("button", "btn primary big", ic("trophy", 20) + "View your certificate", { type: "button" });
+      certBtn.addEventListener("click", screenCertificate);
+      wrap.appendChild(certBtn);
+    }
+
+    root.appendChild(wrap);
+  }
+
+  function bubbleForProgress(st, guide) {
+    if (st.completed.length === 0) return guide.intro;
+    if (st.completed.length === DECODED.levels.length) return "You did it. All 11 decoded. Go grab your certificate.";
+    var next = nextLevelNum(st);
+    return "Nice work so far. Level " + next + " is ready when you are.";
+  }
+
+  function nextLevelNum(st) {
+    for (var i = 1; i <= DECODED.levels.length; i++) {
+      if (!S.isCompleted(i)) return i;
+    }
+    return DECODED.levels.length;
+  }
+
+  function levelRow(lv) {
+    var unlocked = S.isUnlocked(lv.num);
+    var done = S.isCompleted(lv.num);
+    var stateLabel = done ? "DONE" : (unlocked ? "PLAY" : "LOCKED");
+    var cls = "level-row " + (done ? "done" : unlocked ? "open" : "locked");
+
+    var row = el("button", cls, null, {
+      type: "button",
+      "aria-label": "Level " + lv.num + ", " + lv.title + ", " + stateLabel
+    });
+    row.innerHTML =
+      '<span class="lv-num">' + lv.num + '</span>' +
+      '<span class="lv-main"><span class="lv-title">' + lv.title + '</span>' +
+      '<span class="lv-tag">' + lv.tag + '</span></span>' +
+      '<span class="lv-state">' + (done ? ic("check-circle") + "DONE" : unlocked ? ic("play") + "PLAY" : ic("lock") + "LOCKED") + '</span>';
+
+    if (unlocked) row.addEventListener("click", function () { screenLevel(lv.num); });
+    else row.disabled = true;
+    return row;
+  }
+
+  /* ------------------------------ Level --------------------------------- */
+  function screenLevel(num) {
+    var lv = DECODED.levelByNum(num);
+    if (!lv || !S.isUnlocked(num)) { screenHome(); return; }
+    clear(root);
+    updateHud();
+    var guide = DECODED.guides[S.get().guide] || DECODED.guides.ada;
+
+    var wrap = el("div", "screen-pad level-screen fade-up");
+
+    var top = el("div", "level-top");
+    var back = el("button", "link-btn", ic("arrow-left") + "Back to map", { type: "button" });
+    back.addEventListener("click", screenHome);
+    top.appendChild(back);
+    top.appendChild(el("span", "level-counter", "Level " + lv.num + " of " + DECODED.levels.length));
+    wrap.appendChild(top);
+
+    wrap.appendChild(el("h2", "level-title", lv.title));
+
+    // Guide intro line
+    var intro = el("div", "guide-line", null);
+    intro.innerHTML = '<span class="gl-mascot">' +
+      DECODED.mascotSVG(guide.id, { size: 44, animate: !DECODED.reducedMotion() }) + '</span>' +
+      '<span class="gl-text" style="--gc:' + guide.color + '">' + lv.intro + '</span>';
+    wrap.appendChild(intro);
+
+    // How-to-play callout
+    wrap.appendChild(el("div", "howto", '<span class="howto-ic">' + icon("nav-arrow-right") + '</span>' + lv.howToPlay));
+
+    // Mini-game host
+    var host = el("div", "game-host");
+    wrap.appendChild(host);
+    root.appendChild(wrap);
+    window.scrollTo(0, 0);
+
+    var ctx = makeContext(lv, function (result) { screenReveal(lv, result); });
+    var mechanic = DECODED.mechanics[lv.mechanic];
+    if (mechanic) mechanic(lv, host, ctx);
+    else host.appendChild(el("div", "card", "This level type is not available."));
+  }
+
+  /* ------------------------------ Reveal -------------------------------- */
+  // A level is passed when the player got MORE than half the questions right.
+  // 50% and below counts as a fail, and the player is offered a retry.
+  function passedLevel(result) {
+    if (!result || !result.total) return true; // levels without scored questions always pass
+    return (result.correct / result.total) > 0.5;
+  }
+
+  function screenReveal(lv, result) {
+    if (!passedLevel(result)) { screenFailed(lv, result); return; }
+
+    S.completeLevel(lv.num, lv.glossaryId);
+    updateHud();
+    DECODED.confetti();
+
+    clear(root);
+    var glossary = DECODED.glossaryById(lv.glossaryId);
+    var isLast = lv.num === DECODED.levels.length;
+
+    var wrap = el("div", "screen-pad fade-up");
+    wrap.appendChild(el("div", "reveal-badge", "Level " + lv.num + " complete"));
+
+    // Reveal: what just happened
+    var reveal = el("div", "card reveal-card");
+    reveal.innerHTML = '<div class="reveal-title">' + ic("light-bulb", 20) + lv.reveal.title + '</div>' +
+      '<p class="reveal-body">' + lv.reveal.body + '</p>';
+    wrap.appendChild(reveal);
+
+    // Concept unlocked
+    var concept = el("div", "card concept-card pop-in");
+    concept.innerHTML =
+      '<div class="concept-tag">' + ic("sparks") + 'Concept Unlocked</div>' +
+      '<div class="concept-term">' + ic(glossary.icon, 22) + glossary.term + '</div>' +
+      '<div class="concept-def">' + glossary.definition + '</div>';
+    wrap.appendChild(concept);
+
+    // Try this: a realistic assignment to test understanding for real
+    if (lv.assignment) {
+      var task = el("div", "card assignment-card pop-in");
+      task.innerHTML =
+        '<div class="assignment-tag">' + ic("task-list") + 'Try this in real life</div>' +
+        '<p class="assignment-body">' + lv.assignment + '</p>';
+      wrap.appendChild(task);
+    }
+
+    // CTA only on the last level
+    if (isLast) wrap.appendChild(ctaBlock());
+
+    // Navigation
+    var nav = el("div", "reveal-nav");
+    if (!isLast) {
+      var nextNum = lv.num + 1;
+      var nextBtn = el("button", "btn primary", "Next level" + ic2("nav-arrow-right"), { type: "button" });
+      nextBtn.addEventListener("click", function () { screenLevel(nextNum); });
+      nav.appendChild(nextBtn);
+    } else {
+      var certBtn = el("button", "btn primary", ic("trophy", 20) + "See your certificate", { type: "button" });
+      certBtn.addEventListener("click", screenCertificate);
+      nav.appendChild(certBtn);
+    }
+    var mapBtn = el("button", "btn ghost", "Back to map", { type: "button" });
+    mapBtn.addEventListener("click", screenHome);
+    nav.appendChild(mapBtn);
+    wrap.appendChild(nav);
+
+    root.appendChild(wrap);
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------------------- Failed a level (retry) ------------------------ */
+  function screenFailed(lv, result) {
+    // Do NOT complete the level: the concept stays locked until they pass.
+    clear(root);
+    var wrap = el("div", "screen-pad fade-up");
+    wrap.appendChild(el("div", "reveal-badge fail", "Level " + lv.num + " not passed"));
+
+    var panel = el("div", "card fail-card");
+    panel.innerHTML =
+      '<div class="fail-title">' + ic("refresh-double", 20) + "Give it another go</div>" +
+      '<p class="fail-body">You got ' + result.correct + " of " + result.total +
+      " right. You need more than half to pass and unlock this concept. Take another run at it, the explanation below will help.</p>";
+    wrap.appendChild(panel);
+
+    // Still teach the idea so the retry goes better.
+    var reveal = el("div", "card reveal-card");
+    reveal.innerHTML = '<div class="reveal-title">' + ic("light-bulb", 20) + lv.reveal.title + '</div>' +
+      '<p class="reveal-body">' + lv.reveal.body + '</p>';
+    wrap.appendChild(reveal);
+
+    var nav = el("div", "reveal-nav");
+    var retry = el("button", "btn primary", ic("refresh-double", 18) + "Retry Level", { type: "button" });
+    retry.addEventListener("click", function () { screenLevel(lv.num); });
+    nav.appendChild(retry);
+    var mapBtn = el("button", "btn ghost", "Back to map", { type: "button" });
+    mapBtn.addEventListener("click", screenHome);
+    nav.appendChild(mapBtn);
+    wrap.appendChild(nav);
+
+    root.appendChild(wrap);
+    window.scrollTo(0, 0);
+  }
+
+  function ctaBlock() {
+    var block = el("div", "card cta-card");
+    block.innerHTML = '<p class="cta-text">' + DECODED.config.CTA.text + '</p>';
+    var btn = el("a", "btn primary", DECODED.config.CTA.buttonLabel, {
+      href: DECODED.config.CTA.href, target: "_blank", rel: "noopener"
+    });
+    block.appendChild(btn);
+    return block;
+  }
+
+  /* ---------------------------- Certificate ----------------------------- */
+  function screenCertificate() {
+    clear(root);
+    S.markCertificateSeen();
+    var st = S.get();
+    var guide = DECODED.guides[st.guide] || DECODED.guides.ada;
+    var rank = DECODED.rankForScore(st.score);
+
+    var wrap = el("div", "screen-pad fade-up");
+
+    var cert = el("div", "card cert-card", null, { style: "--gc:" + guide.color });
+    cert.innerHTML =
+      '<div class="cert-mascot">' + DECODED.mascotSVG(guide.id, { size: 140, animate: !DECODED.reducedMotion() }) + '</div>' +
+      '<h2 class="cert-title">' + DECODED.copy.certTitle + '</h2>' +
+      '<div class="cert-stats">' +
+        '<div class="cert-stat"><span class="cs-num">' + st.score + '</span><span class="cs-lab">' + ic("star") + 'Score</span></div>' +
+        '<div class="cert-stat"><span class="cs-num">' + rank.name + '</span><span class="cs-lab">' + ic("trophy") + 'Rank</span></div>' +
+        '<div class="cert-stat"><span class="cs-num">' + st.bestStreak + '</span><span class="cs-lab">' + ic("fire-flame") + 'Best streak</span></div>' +
+      '</div>';
+    wrap.appendChild(cert);
+
+    // Concept pills row
+    var pills = el("div", "concept-pills");
+    DECODED.glossary.forEach(function (g) {
+      pills.appendChild(el("span", "concept-pill", ic(g.icon) + g.term));
+    });
+    wrap.appendChild(el("h3", "chapter-title", "Concepts you unlocked"));
+    wrap.appendChild(pills);
+
+    // Full concept deck
+    var deck = el("div", "concept-deck");
+    DECODED.glossary.forEach(function (g) {
+      var c = el("div", "card mini-concept");
+      c.innerHTML = '<div class="concept-term">' + ic(g.icon, 20) + g.term + '</div>' +
+        '<div class="concept-def">' + g.definition + '</div>';
+      deck.appendChild(c);
+    });
+    wrap.appendChild(deck);
+
+    // Share card + email capture + CTA
+    wrap.appendChild(shareBlock(st, guide, rank));
+    wrap.appendChild(emailBlock(st, rank));
+    wrap.appendChild(ctaBlock());
+
+    // Leaderboard entry + replay/reset
+    var lbBtn = el("button", "btn ghost", ic("trophy") + "Add your score to the leaderboard", { type: "button" });
+    lbBtn.addEventListener("click", function () { screenLeaderboard(true); });
+    wrap.appendChild(lbBtn);
+
+    var endNav = el("div", "reveal-nav");
+    var replay = el("button", "btn ghost", ic("refresh-double") + "Replay", { type: "button" });
+    replay.addEventListener("click", screenHome);
+    var reset = el("button", "btn danger", "Reset progress", { type: "button" });
+    reset.addEventListener("click", function () {
+      if (confirm("Reset all your progress and score? This cannot be undone.")) {
+        S.reset();
+        applyTheme(S.get().theme);
+        renderHeader();
+        screenSplash();
+        updateHud();
+      }
+    });
+    endNav.appendChild(replay);
+    endNav.appendChild(reset);
+    wrap.appendChild(endNav);
+
+    root.appendChild(wrap);
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------------------------- Share block ----------------------------- */
+  function shareBlock(st, guide, rank) {
+    var block = el("div", "card share-card");
+    block.appendChild(el("h3", "block-title", ic("share-android", 20) + "Share your result"));
+    var canvas = el("canvas", "share-preview");
+    block.appendChild(canvas);
+
+    var row = el("div", "share-actions");
+    var dl = el("button", "btn primary", ic("download") + "Download image", { type: "button" });
+    var sh = el("button", "btn ghost", ic("share-android") + "Share", { type: "button" });
+    row.appendChild(dl);
+    row.appendChild(sh);
+    block.appendChild(row);
+
+    DECODED.buildShareCard(canvas, { guide: guide.id, score: st.score, rank: rank.name }, function () {});
+
+    var FILENAME = "decoded-result.png";
+
+    dl.addEventListener("click", function () {
+      DECODED.buildShareCard(canvas, { guide: guide.id, score: st.score, rank: rank.name }, function (cv) {
+        saveImage(cv);
+      });
+    });
+
+    sh.addEventListener("click", function () {
+      DECODED.buildShareCard(canvas, { guide: guide.id, score: st.score, rank: rank.name }, function (cv) {
+        if (!cv.toBlob) { saveImage(cv); return; }
+        cv.toBlob(function (blob) {
+          if (!blob) { saveImage(cv); return; }
+          var file = new File([blob], FILENAME, { type: "image/png" });
+          var shareData = {
+            title: "Decoded",
+            text: DECODED.copy.shareHeadline + " Play free at " + DECODED.config.SITE_URL_LABEL,
+            url: DECODED.config.SITE_URL
+          };
+          try {
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+              navigator.share({ title: shareData.title, text: shareData.text, files: [file] })
+                .catch(function () { saveImage(cv, blob); });
+            } else if (navigator.share) {
+              navigator.share(shareData).catch(function () { saveImage(cv, blob); });
+            } else {
+              saveImage(cv, blob);
+            }
+          } catch (e) {
+            saveImage(cv, blob);
+          }
+        }, "image/png");
+      });
+    });
+
+    // Robust PNG saver: prefers a Blob object URL with an anchor that is actually
+    // in the DOM (a detached anchor is ignored by many browsers), and falls back
+    // to opening the image in a new tab so the player can save it manually.
+    function saveImage(cv, blob) {
+      function download(url, revoke) {
+        var a = document.createElement("a");
+        a.href = url;
+        a.download = FILENAME;
+        a.rel = "noopener";
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(function () {
+          if (a.parentNode) a.parentNode.removeChild(a);
+          if (revoke) URL.revokeObjectURL(url);
+        }, 1500);
+      }
+      function openInTab() {
+        var url = cv.toDataURL("image/png");
+        var w = window.open("", "_blank");
+        if (w && w.document) {
+          w.document.title = "Your Decoded result";
+          w.document.body.style.margin = "0";
+          w.document.body.style.background = "#0B0B0C";
+          w.document.body.innerHTML =
+            '<img src="' + url + '" alt="Your Decoded result. Long press or right click to save." ' +
+            'style="display:block;max-width:100%;height:auto;margin:0 auto">';
+        } else {
+          download(url, false); // final attempt with a data URL
+        }
+      }
+      try {
+        if (blob) { download(URL.createObjectURL(blob), true); return; }
+        if (cv.toBlob) {
+          cv.toBlob(function (b) {
+            if (b) download(URL.createObjectURL(b), true);
+            else openInTab();
+          }, "image/png");
+        } else {
+          openInTab();
+        }
+      } catch (e) {
+        openInTab();
+      }
+    }
+
+    return block;
+  }
+
+  /* ---------------------------- Email block ----------------------------- */
+  function emailBlock(st, rank) {
+    var block = el("div", "card email-card");
+    block.innerHTML = '<h3 class="block-title">' + ic("mail", 20) + DECODED.copy.emailTitle + '</h3>' +
+      '<p class="block-sub">' + DECODED.copy.emailSub + '</p>';
+
+    var form = el("form", "email-form");
+    var input = el("input", "email-input", null, {
+      type: "email", placeholder: "you@email.com", "aria-label": "Your email address", required: "required"
+    });
+    var submit = el("button", "btn primary", DECODED.copy.emailButton, { type: "submit" });
+    form.appendChild(input);
+    form.appendChild(submit);
+    block.appendChild(form);
+    var msg = el("div", "email-msg", "", { "aria-live": "polite" });
+    block.appendChild(msg);
+
+    var user = DECODED.auth.getUser();
+    if (st.email) input.value = st.email;
+    else if (user && user.email) input.value = user.email;
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var email = input.value.trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        msg.className = "email-msg bad";
+        msg.textContent = "That email does not look right. Give it another go.";
+        return;
+      }
+      S.setEmail(email);
+      submit.disabled = true;
+      submit.textContent = "Sending...";
+
+      var payload = { email: email, score: st.score, rank: rank.name };
+      var endpoint = DECODED.config.FORM_ENDPOINT;
+
+      function done() {
+        msg.className = "email-msg good";
+        msg.textContent = DECODED.copy.emailSuccess;
+        submit.textContent = "Sent";
+      }
+
+      if (endpoint) {
+        fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(payload)
+        }).then(done).catch(function () {
+          // Even if the network fails, the email is stored locally.
+          done();
+        });
+      } else {
+        done();
+      }
+    });
+
+    return block;
+  }
+
+  /* --------------------------- Leaderboard ------------------------------ */
+  function screenLeaderboard(fromCert) {
+    clear(root);
+    var st = S.get();
+    var wrap = el("div", "screen-pad fade-up");
+
+    var top = el("div", "level-top");
+    var back = el("button", "link-btn", ic("arrow-left") + (fromCert ? "Back to certificate" : "Back to map"), { type: "button" });
+    back.addEventListener("click", function () { if (fromCert) screenCertificate(); else screenHome(); });
+    top.appendChild(back);
+    wrap.appendChild(top);
+
+    wrap.appendChild(el("h2", "screen-title", ic("trophy", 24) + "Leaderboard"));
+
+    var listWrap = el("div", "lb-list");
+    wrap.appendChild(listWrap);
+
+    function draw(list) {
+      clear(listWrap);
+      list.forEach(function (entry, idx) {
+        var rankNum = idx + 1;
+        var cls = "lb-row" + (rankNum <= 3 ? " top top-" + rankNum : "") + (entry.you ? " you" : "");
+        var medal = rankNum <= 3 ? icon("trophy", { size: 20 }) : rankNum;
+        var row = el("div", cls);
+        row.innerHTML = '<span class="lb-rank">' + medal + '</span>' +
+          '<span class="lb-initials">' + entry.initials + (entry.you ? " (you)" : "") + '</span>' +
+          '<span class="lb-score">' + entry.score + '</span>';
+        listWrap.appendChild(row);
+      });
+    }
+    draw(DECODED.leaderboard.fetch());
+
+    // Add-your-score flow
+    var add = el("div", "card lb-add");
+    add.innerHTML = '<div class="block-title">Add your score: ' + st.score + '</div>';
+    var form = el("form", "lb-form");
+    var input = el("input", "lb-initials-input", null, {
+      type: "text", maxlength: "4", placeholder: "ABC", "aria-label": "Your initials, up to 4 letters"
+    });
+    var btn = el("button", "btn primary", "Add me", { type: "submit" });
+    form.appendChild(input);
+    form.appendChild(btn);
+    add.appendChild(form);
+    var addedMsg = el("div", "email-msg", "", { "aria-live": "polite" });
+    add.appendChild(addedMsg);
+    wrap.appendChild(add);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var initials = input.value.trim();
+      if (!initials) { addedMsg.className = "email-msg bad"; addedMsg.textContent = "Add a couple letters first."; return; }
+      var list = DECODED.leaderboard.add(initials, st.score);
+      draw(list);
+      btn.disabled = true;
+      input.disabled = true;
+      addedMsg.className = "email-msg good";
+      addedMsg.textContent = "You're on the board.";
+    });
+
+    root.appendChild(wrap);
+    window.scrollTo(0, 0);
+  }
+
+})();
+</script>
+<script>
+(function(){ function go(){ try { DECODED.app.init(); } catch(e){ console.error(e); } } if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", go); else go(); })();
+</script>
+</body>
+</html>
